@@ -9,6 +9,7 @@ public class Rey extends Pieza {
 
     public Rey(boolean color) {
         super(color);
+        this.letra = this.toString();
     }
 
     @Override

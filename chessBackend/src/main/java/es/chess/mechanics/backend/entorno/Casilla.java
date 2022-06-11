@@ -4,6 +4,7 @@ public class Casilla {
 
     private int fila;
     private int columna;
+    private String notacionAlgebraica;
     /* 1 a
     2 b
     3 c
@@ -54,6 +55,18 @@ public class Casilla {
 
     public void setBlanca(boolean blanca) {
         this.blanca = blanca;
+    }
+
+    public String getNotacionAlgebraica() {
+        return notacionAlgebraica;
+    }
+
+    public void setNotacionAlgebraica(String notacionAlgebraica) {
+        this.notacionAlgebraica = notacionAlgebraica;
+    }
+
+    public void setNotacionAlgebraica() {
+        this.notacionAlgebraica = this.toStringNotacionAlgebraica();
     }
 
     public String toString(){
@@ -107,7 +120,7 @@ public class Casilla {
         }
     }
 
-    public java.lang.String toStringNotacionAlgebraica(){
+    public String toStringNotacionAlgebraica(){
         return ("abcdefghijklmnopqrstuvwxyz".charAt(this.columna - 1)) + "" +  this.fila;
     }
 }

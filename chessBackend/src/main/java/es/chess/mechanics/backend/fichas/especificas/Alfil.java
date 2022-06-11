@@ -9,6 +9,7 @@ public class Alfil extends Pieza {
 
     public Alfil(boolean color) {
         super(color);
+        this.letra = this.toString();
     }
 
     @Override

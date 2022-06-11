@@ -4,6 +4,7 @@ import es.chess.mechanics.backend.fichas.generica.Pieza;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class Partida {
 
@@ -51,12 +52,16 @@ public class Partida {
                     boolean captura = tablero.getPiezasNegras().containsKey(casillaDestino);
                     this.movimiento(piezaAMover, casillaDestino);
                     // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
+                    tablero.setCasillasControladasBlancas(new TreeSet<>());
+                    tablero.setCasillasControladasNegras(new TreeSet<>());
                     for (Map.Entry<String, Pieza> pieza : tablero.getPiezasBlancas().entrySet()){
                         pieza.getValue().actualizarCasillasControladas(tablero);
+                        tablero.getCasillasControladasBlancas().addAll(pieza.getValue().getCasillasControladas());
                         //pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
                     for (Map.Entry<String, Pieza> pieza : tablero.getPiezasNegras().entrySet()){
                         pieza.getValue().actualizarCasillasControladas(tablero);
+                        tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
                         pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
                     comprobarResultado();
@@ -68,13 +73,17 @@ public class Partida {
                 if (piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
                     boolean captura = tablero.getPiezasBlancas().containsKey(casillaDestino);
                     this.movimiento(piezaAMover, casillaDestino);
+                    tablero.setCasillasControladasBlancas(new TreeSet<>());
+                    tablero.setCasillasControladasNegras(new TreeSet<>());
                     // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
                     for (Map.Entry<String, Pieza> pieza : tablero.getPiezasNegras().entrySet()){
                         pieza.getValue().actualizarCasillasControladas(tablero);
+                        tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
                         //pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
                     for (Map.Entry<String, Pieza> pieza : tablero.getPiezasBlancas().entrySet()){
                         pieza.getValue().actualizarCasillasControladas(tablero);
+                        tablero.getCasillasControladasBlancas().addAll(pieza.getValue().getCasillasControladas());
                         pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
                     s = piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\n";

@@ -9,6 +9,7 @@ public class Caballo extends Pieza {
 
     public Caballo(boolean color) {
         super(color);
+        this.letra = this.toString();
     }
 
     @Override

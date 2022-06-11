@@ -5,6 +5,7 @@ import es.chess.mechanics.backend.fichas.generica.Pieza;
 
 import java.util.Comparator;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class Tablero {
 
@@ -14,6 +15,8 @@ public class Tablero {
     private boolean jaque;
     private TreeMap<String, Pieza> piezasBlancas;
     private TreeMap<String, Pieza> piezasNegras;
+    private TreeSet<String> casillasControladasBlancas;
+    private TreeSet<String> casillasControladasNegras;
 
     //private Casilla[][] tableroArray;
 
@@ -22,6 +25,8 @@ public class Tablero {
         numeroColumnas = 8;
         piezasBlancas = new TreeMap<>();
         piezasNegras = new TreeMap<>();
+        casillasControladasNegras = new TreeSet<>();
+        casillasControladasBlancas = new TreeSet<>();
         casillas = new TreeMap<String, Casilla>(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -30,9 +35,9 @@ public class Tablero {
                 int filaCasilla2 = Integer.parseInt(o2.split("_")[0]);
                 int colCasilla2 = Integer.parseInt(o2.split("_")[1]);
                 if (filaCasilla1 != filaCasilla2){
-                    return filaCasilla1 - filaCasilla2;
+                    return filaCasilla2 - filaCasilla1;
                 }else if (colCasilla2 != colCasilla1){
-                    return colCasilla2 - colCasilla1;
+                    return colCasilla1 - colCasilla2;
                 }else{
                     return 0;
                 }
@@ -46,6 +51,7 @@ public class Tablero {
                 casilla.setColumna(j);
                 casilla.setBlanca(((i+j) % 2) != 0);
                 casilla.setActiva(true);
+                casilla.setNotacionAlgebraica();
                 String notacionString = i + "_" + j;
                 casillas.put(notacionString, casilla);
             }
@@ -98,7 +104,17 @@ public class Tablero {
     private void posicionInicial(){
         colocarPiezas(true);
         colocarPiezas(false);
-
+        for (String piezaCasilla: piezasNegras.keySet()){
+            piezasNegras.get(piezaCasilla).actualizarCasillasControladas(this);
+            casillasControladasNegras.addAll(piezasNegras.get(piezaCasilla).getCasillasControladas());
+        }
+        for (String piezaCasilla: piezasBlancas.keySet()){
+            piezasBlancas.get(piezaCasilla).actualizarCasillasControladas(this);
+            casillasControladasBlancas.addAll(piezasBlancas.get(piezaCasilla).getCasillasControladas());
+        }
+        for (String piezaCasilla: piezasBlancas.keySet()){
+            piezasBlancas.get(piezaCasilla).actualizarCasillasDisponibles(this);
+        }
     }
 
     public int getNumeroFilas() {
@@ -141,6 +157,22 @@ public class Tablero {
         this.jaque = jaque;
     }
 
+    public TreeSet<String> getCasillasControladasBlancas() {
+        return casillasControladasBlancas;
+    }
+
+    public void setCasillasControladasBlancas(TreeSet<String> casillasControladasBlancas) {
+        this.casillasControladasBlancas = casillasControladasBlancas;
+    }
+
+    public TreeSet<String> getCasillasControladasNegras() {
+        return casillasControladasNegras;
+    }
+
+    public void setCasillasControladasNegras(TreeSet<String> casillasControladasNegras) {
+        this.casillasControladasNegras = casillasControladasNegras;
+    }
+
     public Pieza getPiezaCasilla(String casilla, boolean blanca){
         if (blanca){
             return this.getPiezasBlancas().get(casilla);
@@ -156,7 +188,7 @@ public class Tablero {
             Pieza peon = new Peon(blancas);
             Casilla casillaPeon = blancas ? obtenerCasilla(primeraFila + 1,i) : obtenerCasilla(primeraFila - 1,i);
             peon.setCasilla(casillaPeon.toStringNotacionAlgebraica());
-            peon.actualizarCasillasDisponibles(this);
+            //peon.actualizarCasillasDisponibles(this);
             conjuntoPiezas.put(casillaPeon.toStringNotacionAlgebraica(), peon);
         }
 
@@ -177,14 +209,14 @@ public class Tablero {
         alfilF.setCasilla("f" + primeraFila);
         caballoG.setCasilla("g" + primeraFila);
         torreH.setCasilla("h" + primeraFila);
-        torreA.actualizarCasillasDisponibles(this);
+        /*torreA.actualizarCasillasDisponibles(this);
         caballoB.actualizarCasillasDisponibles(this);
         alfilC.actualizarCasillasDisponibles(this);
         dama.actualizarCasillasDisponibles(this);
         rey.actualizarCasillasDisponibles(this);
         alfilF.actualizarCasillasDisponibles(this);
         caballoG.actualizarCasillasDisponibles(this);
-        torreH.actualizarCasillasDisponibles(this);
+        torreH.actualizarCasillasDisponibles(this);*/
         conjuntoPiezas.put(torreA.getCasilla(), torreA);
         conjuntoPiezas.put(torreH.getCasilla(), torreH);
         conjuntoPiezas.put(caballoB.getCasilla(), caballoB);

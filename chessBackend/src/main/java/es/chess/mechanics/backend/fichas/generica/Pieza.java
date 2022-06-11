@@ -10,6 +10,7 @@ import java.util.TreeMap;
 
 public abstract class Pieza {
 
+    protected String letra;
     protected boolean movida;
     protected boolean blanca;
     protected String casilla;
@@ -61,6 +62,14 @@ public abstract class Pieza {
 
     public void setCasillasControladas(HashSet<String> casillasControladas) {
         this.casillasControladas = casillasControladas;
+    }
+
+    public String getLetra() {
+        return letra;
+    }
+
+    public void setLetra(String letra) {
+        this.letra = letra;
     }
 
     public void actualizarCasillasDisponibles(Tablero tablero){
@@ -116,7 +125,6 @@ public abstract class Pieza {
         int offsetFila = 1;
         int offsetCol = 1;
         boolean ocupada = false;
-        Casilla casillaCandidata;
         while (!ocupada){
             ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol, false, false);
 
@@ -259,6 +267,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -272,6 +283,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -285,6 +299,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -298,6 +315,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -316,6 +336,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -326,6 +349,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -337,6 +363,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }
@@ -348,6 +377,9 @@ public abstract class Pieza {
             casillaCandidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
             if (casillaCandidata != null){
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (casillaCandidata.isOcupada(tablero)){
+                    existe = false;
+                }
             }else{
                 existe = false;
             }

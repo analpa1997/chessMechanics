@@ -9,6 +9,7 @@ public class Peon extends Pieza {
 
     public Peon(boolean color) {
         super(color);
+        this.letra = "";
     }
 
     @Override
