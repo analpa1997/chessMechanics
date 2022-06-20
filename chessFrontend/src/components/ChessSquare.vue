@@ -1,24 +1,40 @@
 <template>
-  <div v-bind:id="notacionAlgebraica" v-bind:class="{ 'isActiva': isActiva, 'blanca': isBlanca, 'negra': !isBlanca }">
-
-  </div>
+  <img draggable="true"
+       class="pieza img-fluid"
+       v-bind:class="{'conMovimientos':this.piezaEnCasilla.blanca === turnoBlancas && this.piezaEnCasilla.casillasDisponibles.length > 0}"
+       v-bind:id="this.piezaEnCasilla.nombreImagen + '-' +  notacionAlgebraica"
+       v-if="piezaEnCasilla"
+       v-bind:src="'/static/img/' + this.piezaEnCasilla.nombreImagen + '.png'"
+  />
 </template>
 
 <script>
 export default {
   name: "ChessSquare",
-  props: ['notacionAlgebraica', 'fila', 'columna', 'isBlanca', 'isActiva'],
+  props: ['turnoBlancas', 'piezaEnCasilla','notacionAlgebraica', 'fila', 'columna', 'isBlanca', 'isActiva'],
+  methods: {
+
+  },
   mounted() {
-    console.log(this.notacionAlgebraica);
+
   }
 }
 </script>
 
 <style scoped>
   .blanca{
-    background: #ffffff;
+    color: #000000;
   }
   .negra{
-    background: #000000;
+    color: #ffffff;
+  }
+  .pieza{
+    width: 35rem;
+  }
+  .conMovimientos{
+    cursor:grab;
+  }
+  .conMovimientos:active{
+    cursor:grabbing;
   }
 </style>

@@ -10,6 +10,12 @@ public class Dama extends Pieza {
     public Dama(boolean color) {
         super(color);
         this.letra = this.toString();
+        this.nombreImagen = "dama" + (this.blanca ? "Blanca" : "Negra");
+        this.tipoPieza = "dama";
+    }
+
+    public Dama(){
+        this.tipoPieza = "dama";
     }
 
     @Override

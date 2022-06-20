@@ -10,6 +10,12 @@ public class Torre extends Pieza {
     public Torre(boolean color) {
         super(color);
         this.letra = this.toString();
+        this.nombreImagen = "torre" + (this.blanca ? "Blanca" : "Negra");
+        this.tipoPieza = "torre";
+    }
+
+    public Torre(){
+        this.tipoPieza = "torre";
     }
 
     @Override

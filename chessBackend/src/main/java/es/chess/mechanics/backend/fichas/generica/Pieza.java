@@ -1,13 +1,24 @@
 package es.chess.mechanics.backend.fichas.generica;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import es.chess.mechanics.backend.entorno.Casilla;
 import es.chess.mechanics.backend.entorno.Tablero;
-import es.chess.mechanics.backend.fichas.especificas.Rey;
+import es.chess.mechanics.backend.fichas.especificas.*;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoPieza")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Peon.class, name = "peon"),
+        @JsonSubTypes.Type(value = Dama.class, name = "dama"),
+        @JsonSubTypes.Type(value = Caballo.class, name = "caballo"),
+        @JsonSubTypes.Type(value = Alfil.class, name = "alfil"),
+        @JsonSubTypes.Type(value = Torre.class, name = "torre"),
+        @JsonSubTypes.Type(value = Rey.class, name = "rey")
+})
 public abstract class Pieza {
 
     protected String letra;
@@ -16,12 +27,18 @@ public abstract class Pieza {
     protected String casilla;
     protected HashSet<String> casillasDisponibles;
     protected HashSet<String> casillasControladas;
+    protected String nombreImagen;
+    protected String tipoPieza;
 
     public Pieza(boolean blanca){
         this.blanca = blanca;
         this.casilla = null;
         this.casillasDisponibles = new HashSet<>();
         this.casillasControladas = new HashSet<>();
+    }
+
+    public Pieza(){
+
     }
 
     public boolean isBlanca() {
@@ -48,6 +65,14 @@ public abstract class Pieza {
         this.movida = movida;
     }
 
+    public String getNombreImagen() {
+        return nombreImagen;
+    }
+
+    public void setNombreImagen(String nombreImagen) {
+        this.nombreImagen = nombreImagen;
+    }
+
     public HashSet<String> getCasillasDisponibles() {
         return casillasDisponibles;
     }
@@ -70,6 +95,14 @@ public abstract class Pieza {
 
     public void setLetra(String letra) {
         this.letra = letra;
+    }
+
+    public String getTipoPieza() {
+        return tipoPieza;
+    }
+
+    public void setTipoPieza(String tipoPieza) {
+        this.tipoPieza = tipoPieza;
     }
 
     public void actualizarCasillasDisponibles(Tablero tablero){
@@ -200,14 +233,10 @@ public abstract class Pieza {
         this.casillasControladas.addAll(this.casillasDisponibles);
         // FALTA QUITAR CASILLAS CONTROLADAS POR EL RIVAL
         HashSet<String> casillasRivalesControladas = new HashSet<>();
-        TreeMap<String, Pieza> piezasRivales;
-        if (this.isBlanca()){
-            piezasRivales = tablero.getPiezasNegras();
-        }else{
-            piezasRivales = tablero.getPiezasBlancas();
-        }
-        for (Map.Entry<String, Pieza> pieza : piezasRivales.entrySet()){
-            casillasRivalesControladas.addAll(pieza.getValue().casillasControladas);
+        for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+            if (this.isBlanca() != pieza.getValue().isBlanca()){
+                casillasRivalesControladas.addAll(pieza.getValue().casillasControladas);
+            }
         }
 
         for (String casilla : casillasRivalesControladas){
@@ -215,46 +244,49 @@ public abstract class Pieza {
                 casillasDisponibles.remove(casilla);
             }
         }
-        //tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1).toStringNotacionAlgebraica();
         return casillasDisponibles;
     }
 
     protected HashSet<String> casillasControladasPeon(Tablero tablero){
         int filaDelantePeon = this.isBlanca() ? tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1 : tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1;
         if (tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1).toStringNotacionAlgebraica());
+            String casillaControlada = tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1).toStringNotacionAlgebraica();
+            this.casillasControladas.add(casillaControlada);
+            if (tablero.getPiezaCasilla(casillaControlada) != null && tablero.getPiezaCasilla(casillaControlada).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaControlada) instanceof Rey){
+                tablero.getPiezasDandoJaque().add(this);
+            }
         }
         if (tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1).toStringNotacionAlgebraica());
+            String casillaControlada = tablero.obtenerCasilla(filaDelantePeon,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1).toStringNotacionAlgebraica();
+            this.casillasControladas.add(casillaControlada);
+            if (tablero.getPiezaCasilla(casillaControlada) != null && tablero.getPiezaCasilla(casillaControlada).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaControlada) instanceof Rey){
+                tablero.getPiezasDandoJaque().add(this);
+            }
         }
+        tablero.comprobarJaque();
         return casillasControladas;
     }
 
+    private void checkCasilaCaballo(Tablero tablero, int fila, int columna){
+        Casilla casillaControlada = tablero.obtenerCasilla(fila,columna);
+        if (casillaControlada!=null){
+            this.casillasControladas.add(casillaControlada.toStringNotacionAlgebraica());
+            if (tablero.getPiezaCasilla(casillaControlada.toStringNotacionAlgebraica()) != null && tablero.getPiezaCasilla(casillaControlada.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaControlada.toStringNotacionAlgebraica()) instanceof Rey){
+                tablero.getPiezasDandoJaque().add(this);
+            }
+        }
+    }
+
     protected HashSet<String> casillasControladasCaballo(Tablero tablero){
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1).toStringNotacionAlgebraica());
-        }
-        if (tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1)!=null){
-            this.casillasControladas.add(tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1).toStringNotacionAlgebraica());
-        }
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        checkCasilaCaballo(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        tablero.comprobarJaque();
         return this.casillasControladas;
     }
 
@@ -269,6 +301,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -285,6 +320,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -301,6 +339,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -317,6 +358,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -324,6 +368,7 @@ public abstract class Pieza {
             offsetFila++;
             offsetCol++;
         }
+        tablero.comprobarJaque();
         return casillasControladas;
     }
 
@@ -338,6 +383,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -351,6 +399,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -365,6 +416,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -379,6 +433,9 @@ public abstract class Pieza {
                 this.casillasControladas.add(casillaCandidata.toStringNotacionAlgebraica());
                 if (casillaCandidata.isOcupada(tablero)){
                     existe = false;
+                    if (tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()).isBlanca() != this.isBlanca() && tablero.getPiezaCasilla(casillaCandidata.toStringNotacionAlgebraica()) instanceof Rey){
+                        tablero.getPiezasDandoJaque().add(this);
+                    }
                 }
             }else{
                 existe = false;
@@ -417,7 +474,7 @@ public abstract class Pieza {
     }
 
     private boolean comprobarCasillaJaque (Tablero tablero, String casillaDestino){
-        return tablero.getPiezaCasilla(casillaDestino, !blanca) instanceof Rey;
+        return tablero.getPiezaCasilla(casillaDestino) instanceof Rey;
     }
 
     private boolean comprobarCasillaMovimiento(Tablero tablero, int fila, int columna, boolean movimientoPeon, boolean capturaPeon){
@@ -454,5 +511,16 @@ public abstract class Pieza {
         if (!this.movida){
             this.movida = true;
         }
+    }
+
+    private boolean isClavadaAbsoluta(){
+        /*
+        REVISAR SI LA PIEZA ESTÄ CLAVADA
+        Desde la casilla en la que se encuentra la pieza, y la casilla en la que se encuentra el rey del mismo bando, comprobar
+        - Está directamente en la misma fila / columna / diagonal (no hay piezas entre ellas)
+        - Si eso pasa, en la otra dirección de dicha fila / columna / diagonal debe haber directamente una pieza enemiga de largo alcance (torre, alfil, dama)
+        - Con ambas, debe devolver true
+         */
+        return false;
     }
 }

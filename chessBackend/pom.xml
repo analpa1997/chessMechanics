@@ -46,7 +46,10 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>src/main/resources/public</directory>
+                            <directory>src/main/resources/public/static</directory>
+                            <excludes>
+                                <exclude>**/img/*</exclude>
+                            </excludes>
                             <includes>
                                 <include>**/*</include>
                             </includes>

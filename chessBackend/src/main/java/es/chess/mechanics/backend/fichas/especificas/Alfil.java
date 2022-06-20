@@ -10,6 +10,12 @@ public class Alfil extends Pieza {
     public Alfil(boolean color) {
         super(color);
         this.letra = this.toString();
+        this.nombreImagen = "alfil" + (this.blanca ? "Blanco" : "Negro");
+        this.tipoPieza = "alfil";
+    }
+
+    public Alfil(){
+        this.tipoPieza = "alfil";
     }
 
     @Override

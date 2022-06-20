@@ -3,6 +3,7 @@ package es.chess.mechanics.backend.entorno;
 public class Casilla {
 
     private int fila;
+    private String letraColumna;
     private int columna;
     private String notacionAlgebraica;
     /* 1 a
@@ -43,6 +44,10 @@ public class Casilla {
 
     public String getLetraColumna() {
         return "" + "abcdefghijklmnopqrstuvwxyz".charAt(columna - 1);
+    }
+
+    public void setLetraColumna(String letraColumna) {
+        this.letraColumna = letraColumna;
     }
 
     public void setColumna(int columna) {
@@ -98,10 +103,8 @@ public class Casilla {
             }else{
 
             }
-            if (tablero.getPiezasBlancas().containsKey(this.toStringNotacionAlgebraica())){
-                result += tablero.getPiezasBlancas().get(this.toStringNotacionAlgebraica());
-            }else if (tablero.getPiezasNegras().containsKey(this.toStringNotacionAlgebraica())){
-                result += tablero.getPiezasNegras().get(this.toStringNotacionAlgebraica());
+            if (tablero.getPiezas().containsKey(this.toStringNotacionAlgebraica())){
+                result += tablero.getPiezas().get(this.toStringNotacionAlgebraica());
             }
             return result;
         }
@@ -109,15 +112,11 @@ public class Casilla {
     }
 
     public boolean isOcupada(Tablero tablero) {
-        return (tablero.getPiezasBlancas().containsKey(this.toStringNotacionAlgebraica()) || tablero.getPiezasNegras().containsKey(this.toStringNotacionAlgebraica()));
+        return tablero.getPiezas().containsKey(this.toStringNotacionAlgebraica());
     }
 
     public boolean isOcupadaRival(Tablero tablero, boolean blanca) {
-        if (blanca){
-            return tablero.getPiezasNegras().containsKey(this.toStringNotacionAlgebraica());
-        }else{
-            return tablero.getPiezasBlancas().containsKey(this.toStringNotacionAlgebraica());
-        }
+        return tablero.getPiezas().containsKey(this.toStringNotacionAlgebraica()) && (tablero.getPiezas().get(this.toStringNotacionAlgebraica()).isBlanca() != blanca);
     }
 
     public String toStringNotacionAlgebraica(){

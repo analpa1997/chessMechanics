@@ -10,6 +10,12 @@ public class Peon extends Pieza {
     public Peon(boolean color) {
         super(color);
         this.letra = "";
+        this.nombreImagen = "peon" + (this.blanca ? "Blanco" : "Negro");
+        this.tipoPieza = "peon";
+    }
+
+    public Peon(){
+        this.tipoPieza = "peon";
     }
 
     @Override

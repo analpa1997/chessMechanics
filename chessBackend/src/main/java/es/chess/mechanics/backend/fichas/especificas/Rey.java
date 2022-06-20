@@ -10,6 +10,12 @@ public class Rey extends Pieza {
     public Rey(boolean color) {
         super(color);
         this.letra = this.toString();
+        this.nombreImagen = "rey" + (this.blanca ? "Blanco" : "Negro");
+        this.tipoPieza = "rey";
+    }
+
+    public Rey(){
+        this.tipoPieza = "rey";
     }
 
     @Override

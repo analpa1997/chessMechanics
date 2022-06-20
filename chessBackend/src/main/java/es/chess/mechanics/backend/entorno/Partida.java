@@ -2,6 +2,7 @@ package es.chess.mechanics.backend.entorno;
 
 import es.chess.mechanics.backend.fichas.generica.Pieza;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -13,12 +14,16 @@ public class Partida {
     private int resultado;
     private int nMovimientos;
     private boolean partidaFinalizada;
+    private ArrayList<String> jugadasBlancas;
+    private ArrayList<String> jugadasNegras;
 
     public Partida(){
         this.tablero = new Tablero();
         this.turnoBlancas = true;
         this.partidaFinalizada = false;
         this.nMovimientos = 1;
+        this.jugadasBlancas = new ArrayList<>();
+        this.jugadasNegras = new ArrayList<>();
     }
 
     public void pasarTurno(){
@@ -29,66 +34,89 @@ public class Partida {
     }
 
     private void movimiento(Pieza pieza, String destino){
-        if(pieza.isBlanca()){
-            tablero.getPiezasBlancas().remove(pieza.getCasilla());
-        }else{
-            tablero.getPiezasNegras().remove(pieza.getCasilla());
-        }
+        tablero.getPiezas().remove(pieza.getCasilla());
         pieza.movimiento(destino);
-        if(pieza.isBlanca()){
-            tablero.getPiezasBlancas().put(pieza.getCasilla(), pieza);
-        }else{
-            tablero.getPiezasNegras().put(pieza.getCasilla(), pieza);
-        }
+        tablero.getPiezas().put(pieza.getCasilla(), pieza);
+
     }
 
     public String realizarMovimiento(String casillaOrigen, String casillaDestino){
         String s = "";
         Pieza piezaAMover = null;
         if (!partidaFinalizada){
-            if (tablero.getPiezasBlancas().containsKey(casillaOrigen) && turnoBlancas){
-                piezaAMover = tablero.getPiezasBlancas().get(casillaOrigen);
-                if (piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
-                    boolean captura = tablero.getPiezasNegras().containsKey(casillaDestino);
-                    this.movimiento(piezaAMover, casillaDestino);
-                    // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
-                    tablero.setCasillasControladasBlancas(new TreeSet<>());
-                    tablero.setCasillasControladasNegras(new TreeSet<>());
-                    for (Map.Entry<String, Pieza> pieza : tablero.getPiezasBlancas().entrySet()){
-                        pieza.getValue().actualizarCasillasControladas(tablero);
+            piezaAMover = tablero.getPiezas().get(casillaOrigen);
+            if (tablero.getPiezas().containsKey(casillaOrigen) && tablero.getPiezas().get(casillaOrigen).isBlanca() && turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
+                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && !tablero.getPiezas().get(casillaDestino).isBlanca());
+                this.movimiento(piezaAMover, casillaDestino);
+                tablero.setPiezasDandoJaque(new ArrayList<>());
+                tablero.comprobarJaque();
+                // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
+                tablero.setCasillasControladasBlancas(new TreeSet<>());
+                tablero.setCasillasControladasNegras(new TreeSet<>());
+                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+                    pieza.getValue().actualizarCasillasControladas(tablero);
+                    if (pieza.getValue().isBlanca()){
                         tablero.getCasillasControladasBlancas().addAll(pieza.getValue().getCasillasControladas());
-                        //pieza.getValue().actualizarCasillasDisponibles(tablero);
-                    }
-                    for (Map.Entry<String, Pieza> pieza : tablero.getPiezasNegras().entrySet()){
-                        pieza.getValue().actualizarCasillasControladas(tablero);
+                    }else{
                         tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
+                    }
+                }
+                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+                    if (!pieza.getValue().isBlanca()){
                         pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
-                    comprobarResultado();
-                    s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
-                    pasarTurno();
                 }
-            }else if (tablero.getPiezasNegras().containsKey(casillaOrigen) && !turnoBlancas){
-                piezaAMover = tablero.getPiezasNegras().get(casillaOrigen);
-                if (piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
-                    boolean captura = tablero.getPiezasBlancas().containsKey(casillaDestino);
-                    this.movimiento(piezaAMover, casillaDestino);
-                    tablero.setCasillasControladasBlancas(new TreeSet<>());
-                    tablero.setCasillasControladasNegras(new TreeSet<>());
-                    // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
-                    for (Map.Entry<String, Pieza> pieza : tablero.getPiezasNegras().entrySet()){
-                        pieza.getValue().actualizarCasillasControladas(tablero);
-                        tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
-                        //pieza.getValue().actualizarCasillasDisponibles(tablero);
+                String jugadaNotacionAlgebraica = piezaAMover.toStringNotacionAlgebraica();
+                if (captura){
+                    if (piezaAMover.toStringNotacionAlgebraica().equals("")){
+                        jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
                     }
-                    for (Map.Entry<String, Pieza> pieza : tablero.getPiezasBlancas().entrySet()){
-                        pieza.getValue().actualizarCasillasControladas(tablero);
+                    jugadaNotacionAlgebraica += "x";
+                }
+                jugadaNotacionAlgebraica += casillaDestino;
+                if (tablero.isJaque()){
+                    jugadaNotacionAlgebraica += "+";
+                }
+                this.jugadasBlancas.add(jugadaNotacionAlgebraica);
+                comprobarResultado();
+                s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
+                pasarTurno();
+            }else if (tablero.getPiezas().containsKey(casillaOrigen) && !tablero.getPiezas().get(casillaOrigen).isBlanca() && !turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
+                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca());
+                this.movimiento(piezaAMover, casillaDestino);
+                tablero.setPiezasDandoJaque(new ArrayList<>());
+                tablero.comprobarJaque();
+                // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
+                tablero.setCasillasControladasBlancas(new TreeSet<>());
+                tablero.setCasillasControladasNegras(new TreeSet<>());
+                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+                    pieza.getValue().actualizarCasillasControladas(tablero);
+                    if (pieza.getValue().isBlanca()){
                         tablero.getCasillasControladasBlancas().addAll(pieza.getValue().getCasillasControladas());
+                    }else{
+                        tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
+                    }
+                }
+                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+                    if (pieza.getValue().isBlanca()){
                         pieza.getValue().actualizarCasillasDisponibles(tablero);
                     }
-                    s = piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\n";
-                    pasarTurno();
                 }
+                String jugadaNotacionAlgebraica = piezaAMover.toStringNotacionAlgebraica();
+                if (captura){
+                    if (piezaAMover.toStringNotacionAlgebraica().equals("")){
+                        jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
+                    }
+                    jugadaNotacionAlgebraica += "x";
+                }
+                jugadaNotacionAlgebraica += casillaDestino;
+                if (tablero.isJaque()){
+                    jugadaNotacionAlgebraica += "+";
+                }
+                this.jugadasNegras.add(jugadaNotacionAlgebraica);
+                comprobarResultado();
+                s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
+                pasarTurno();
             }else{
                 return "Movimiento no válido";
             }
@@ -131,23 +159,67 @@ public class Partida {
         this.resultado = resultado;
     }
 
+    public int getnMovimientos() {
+        return nMovimientos;
+    }
+
+    public void setnMovimientos(int nMovimientos) {
+        this.nMovimientos = nMovimientos;
+    }
+
+    public boolean isPartidaFinalizada() {
+        return partidaFinalizada;
+    }
+
+    public void setPartidaFinalizada(boolean partidaFinalizada) {
+        this.partidaFinalizada = partidaFinalizada;
+    }
+
+    public ArrayList<String> getJugadasBlancas() {
+        return jugadasBlancas;
+    }
+
+    public void setJugadasBlancas(ArrayList<String> jugadasBlancas) {
+        this.jugadasBlancas = jugadasBlancas;
+    }
+
+    public ArrayList<String> getJugadasNegras() {
+        return jugadasNegras;
+    }
+
+    public void setJugadasNegras(ArrayList<String> jugadasNegras) {
+        this.jugadasNegras = jugadasNegras;
+    }
+
     public void comprobarResultado(){
-        TreeMap<String, Pieza> piezasAComprobar;
+        /*TreeMap<String, Pieza> piezasAComprobar;
         if (turnoBlancas){
             piezasAComprobar = tablero.getPiezasBlancas();
         }else{
             piezasAComprobar = tablero.getPiezasNegras();
-        }
+        }*/
         boolean conMovimientos = false;
-        for (Map.Entry<String, Pieza> pieza : piezasAComprobar.entrySet()){
-            if (pieza.getValue().getCasillasDisponibles().size() > 0){
+        for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+            if ((pieza.getValue().isBlanca() == turnoBlancas) && pieza.getValue().getCasillasDisponibles().size() > 0){
                 conMovimientos = true;
                 break;
             }
         }
         if (!conMovimientos){
             if (tablero.isJaque()){
-                resultado = turnoBlancas ? -1 : 1;
+                if (turnoBlancas){
+                    resultado = 1;
+                    String ultimaJugada = jugadasBlancas.get(nMovimientos-1);
+                    jugadasBlancas.remove(nMovimientos-1);
+                    ultimaJugada = ultimaJugada.replace("+", "#");
+                    jugadasBlancas.add(ultimaJugada);
+                }else{
+                    resultado = -1;
+                    String ultimaJugada = jugadasNegras.get(nMovimientos-1);
+                    jugadasNegras.remove(nMovimientos-1);
+                    ultimaJugada = ultimaJugada.replace("+", "#");
+                    jugadasNegras.add(ultimaJugada);
+                }
             }else{
                 resultado = 0;
             }

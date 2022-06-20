@@ -10,6 +10,12 @@ public class Caballo extends Pieza {
     public Caballo(boolean color) {
         super(color);
         this.letra = this.toString();
+        this.nombreImagen = "caballo" + (this.blanca ? "Blanco" : "Negro");
+        this.tipoPieza = "caballo";
+    }
+
+    public Caballo(){
+        this.tipoPieza = "caballo";
     }
 
     @Override
