@@ -1,6 +1,10 @@
 <template>
   <button class="btn btn-primary" v-on:click="obtenerPartida()">Obtener partida</button>
   <div class="col container-fluid">
+    <div v-if="this.textoFinPartida" class="row">
+      <h1> {{this.textoFinPartida}}</h1>
+    </div>
+
     <div class="row">
       <table id="tablero" class="col-4">
         <tbody>
@@ -75,7 +79,8 @@ export default {
       partidaFinalizada: null,
       tablero: null,
       jugadasBlancas: null,
-      jugadasNegras: null
+      jugadasNegras: null,
+      textoFinPartida: null
     }
   },
   components: {
@@ -101,11 +106,14 @@ export default {
         this.jugadasBlancas = respuesta.data.jugadasBlancas;
         this.jugadasNegras = respuesta.data.jugadasNegras
         this.piezas=respuesta.data.tablero.piezas;
+        this.textoFinPartida = null;
       })
     },
     piezaEnCasilla(casilla){
       return this.piezas[casilla.notacionAlgebraica];
     },
+
+
 
     piezaConMovimiento(casilla){
       return (this.piezas[casilla.notacionAlgebraica] && this.piezas[casilla.notacionAlgebraica].blanca === this.turnoBlancas && this.piezas[casilla.notacionAlgebraica].casillasDisponibles.length > 0);
@@ -113,6 +121,20 @@ export default {
 
     allowDrop(ev) {
       ev.preventDefault();
+    },
+
+    mostrarResultado(){
+      if (this.resultado < 99){
+        if (this.resultado === 1){
+          this.textoFinPartida = "GANAN LAS BLANCAS";
+        }else if (this.resultado === 0){
+          this.textoFinPartida = "TABLAS";
+        }else{
+          this.textoFinPartida = "GANAN LAS NEGRAS";
+        }
+      }else{
+        this.textoFinPartida = null;
+      }
     },
 
     drag(ev) {
@@ -163,11 +185,14 @@ export default {
           this.jugadasBlancas = respuesta.data.jugadasBlancas;
           this.jugadasNegras = respuesta.data.jugadasNegras
           this.piezas=respuesta.data.tablero.piezas;
+          this.mostrarResultado();
         })
       }else{
         console.log("Movimiento no válido");
       }
     }
+
+
   }
 }
 </script>

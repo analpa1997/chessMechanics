@@ -111,6 +111,24 @@ public class Casilla {
 
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        Casilla casilla = (Casilla) obj;
+        return this.fila == casilla.fila && this.columna == casilla.columna;
+    }
+
+    public boolean enLaMismaFila (Casilla casillaAComparar){
+        return casillaAComparar.getFila() == this.getFila();
+    }
+
+    public boolean enLaMismaColumna (Casilla casillaAComparar){
+        return casillaAComparar.getColumna() == this.getColumna();
+    }
+
+    public boolean enLaMismaDiagonal (Casilla casillaAComparar){
+        return Math.abs(casillaAComparar.getFila() - this.getFila()) == Math.abs(casillaAComparar.getColumna() - this.getColumna());
+    }
+
     public boolean isOcupada(Tablero tablero) {
         return tablero.getPiezas().containsKey(this.toStringNotacionAlgebraica());
     }

@@ -1,5 +1,6 @@
 package es.chess.mechanics.backend.entorno;
 
+import es.chess.mechanics.backend.fichas.especificas.Rey;
 import es.chess.mechanics.backend.fichas.generica.Pieza;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class Partida {
         this.nMovimientos = 1;
         this.jugadasBlancas = new ArrayList<>();
         this.jugadasNegras = new ArrayList<>();
+        this.resultado = 99;
     }
 
     public void pasarTurno(){
@@ -40,16 +42,30 @@ public class Partida {
 
     }
 
+    private String jugadaNotacionAlgebraica(Pieza pieza, String casillaOrigen, String casillaDestino, boolean captura){
+        String jugadaNotacionAlgebraica = pieza.toStringNotacionAlgebraica();
+        if (captura){
+            if (pieza.toStringNotacionAlgebraica().equals("")){
+                jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
+            }
+            jugadaNotacionAlgebraica += "x";
+        }
+        jugadaNotacionAlgebraica += casillaDestino;
+        if (tablero.isJaque()){
+            jugadaNotacionAlgebraica += "+";
+        }
+        return jugadaNotacionAlgebraica;
+    }
+
     public String realizarMovimiento(String casillaOrigen, String casillaDestino){
         String s = "";
         Pieza piezaAMover = null;
         if (!partidaFinalizada){
             piezaAMover = tablero.getPiezas().get(casillaOrigen);
-            if (tablero.getPiezas().containsKey(casillaOrigen) && tablero.getPiezas().get(casillaOrigen).isBlanca() && turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
-                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && !tablero.getPiezas().get(casillaDestino).isBlanca());
+            if (tablero.getPiezas().containsKey(casillaOrigen) && tablero.getPiezas().get(casillaOrigen).isBlanca() == turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
+                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca() != turnoBlancas);
                 this.movimiento(piezaAMover, casillaDestino);
                 tablero.setPiezasDandoJaque(new ArrayList<>());
-                tablero.comprobarJaque();
                 // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
                 tablero.setCasillasControladasBlancas(new TreeSet<>());
                 tablero.setCasillasControladasNegras(new TreeSet<>());
@@ -61,75 +77,22 @@ public class Partida {
                         tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
                     }
                 }
-                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
-                    if (!pieza.getValue().isBlanca()){
-                        pieza.getValue().actualizarCasillasDisponibles(tablero);
-                    }
-                }
-                String jugadaNotacionAlgebraica = piezaAMover.toStringNotacionAlgebraica();
-                if (captura){
-                    if (piezaAMover.toStringNotacionAlgebraica().equals("")){
-                        jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
-                    }
-                    jugadaNotacionAlgebraica += "x";
-                }
-                jugadaNotacionAlgebraica += casillaDestino;
-                if (tablero.isJaque()){
-                    jugadaNotacionAlgebraica += "+";
-                }
-                this.jugadasBlancas.add(jugadaNotacionAlgebraica);
-                comprobarResultado();
-                s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
-                pasarTurno();
-            }else if (tablero.getPiezas().containsKey(casillaOrigen) && !tablero.getPiezas().get(casillaOrigen).isBlanca() && !turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
-                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca());
-                this.movimiento(piezaAMover, casillaDestino);
-                tablero.setPiezasDandoJaque(new ArrayList<>());
                 tablero.comprobarJaque();
-                // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
-                tablero.setCasillasControladasBlancas(new TreeSet<>());
-                tablero.setCasillasControladasNegras(new TreeSet<>());
                 for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
-                    pieza.getValue().actualizarCasillasControladas(tablero);
-                    if (pieza.getValue().isBlanca()){
-                        tablero.getCasillasControladasBlancas().addAll(pieza.getValue().getCasillasControladas());
-                    }else{
-                        tablero.getCasillasControladasNegras().addAll(pieza.getValue().getCasillasControladas());
+                    if (pieza.getValue().isBlanca() != turnoBlancas) {
+                        pieza.getValue().reiniciarCasillasDisponibles();
+                        if (tablero.getPiezasDandoJaque().size() <= 1 || (tablero.getPiezasDandoJaque().size() > 1 && pieza.getValue() instanceof Rey)) {
+                            pieza.getValue().actualizarCasillasDisponibles(tablero);
+                        }
                     }
                 }
-                for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
-                    if (pieza.getValue().isBlanca()){
-                        pieza.getValue().actualizarCasillasDisponibles(tablero);
-                    }
-                }
-                String jugadaNotacionAlgebraica = piezaAMover.toStringNotacionAlgebraica();
-                if (captura){
-                    if (piezaAMover.toStringNotacionAlgebraica().equals("")){
-                        jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
-                    }
-                    jugadaNotacionAlgebraica += "x";
-                }
-                jugadaNotacionAlgebraica += casillaDestino;
-                if (tablero.isJaque()){
-                    jugadaNotacionAlgebraica += "+";
-                }
-                this.jugadasNegras.add(jugadaNotacionAlgebraica);
+                ArrayList<String> jugadas = turnoBlancas ? this.jugadasBlancas : this.jugadasNegras ;
+                jugadas.add(this.jugadaNotacionAlgebraica(piezaAMover, casillaOrigen, casillaDestino, captura));
                 comprobarResultado();
                 s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
                 pasarTurno();
             }else{
                 return "Movimiento no válido";
-            }
-        }else{
-            switch (resultado){
-                // COMPROBAR SI ES MATE O ES AHOGADO
-                // FUTURO, COMPROBAR TRIPLE REPETICIÓN / 50 MOVIMIENTOS
-                case (-1):
-                    return "Partida finalizada, ganan las negras";
-                case (0):
-                    return "Partida finalizada, son tablas";
-                case (1):
-                    return "Partida finalizada, ganan las blancas";
             }
         }
         return s;
@@ -192,19 +155,16 @@ public class Partida {
     }
 
     public void comprobarResultado(){
-        /*TreeMap<String, Pieza> piezasAComprobar;
-        if (turnoBlancas){
-            piezasAComprobar = tablero.getPiezasBlancas();
-        }else{
-            piezasAComprobar = tablero.getPiezasNegras();
-        }*/
         boolean conMovimientos = false;
         for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
-            if ((pieza.getValue().isBlanca() == turnoBlancas) && pieza.getValue().getCasillasDisponibles().size() > 0){
+            if ((pieza.getValue().isBlanca() != turnoBlancas) && pieza.getValue().getCasillasDisponibles().size() > 0){
+                System.out.println(pieza.getValue().informacionMovimientosPieza(tablero));
                 conMovimientos = true;
                 break;
             }
         }
+        // COMPROBAR SI ES MATE O ES AHOGADO
+        // FUTURO, COMPROBAR TRIPLE REPETICIÓN / 50 MOVIMIENTOS
         if (!conMovimientos){
             if (tablero.isJaque()){
                 if (turnoBlancas){

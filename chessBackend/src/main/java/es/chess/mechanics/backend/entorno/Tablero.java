@@ -3,10 +3,7 @@ package es.chess.mechanics.backend.entorno;
 import es.chess.mechanics.backend.fichas.especificas.*;
 import es.chess.mechanics.backend.fichas.generica.Pieza;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Tablero {
 
@@ -64,9 +61,47 @@ public class Tablero {
         return casillas.get(fila + "_" + columna);
     }
 
-    public Casilla obtenerCasillaNotacionAlgebraica (String columna, int fila){
-        int nColumna = "abcdefghijklmnopqrstuvwxyz".indexOf(columna) + 1;
-        return casillas.get(fila + "_" + nColumna);
+    /*
+    * tipoAvance = 0 -> Avance por fila
+    * tipoAvance = 1 -> Avance por columna
+    * tipoAvance = 2 -> Avance por diagonal
+    */
+    public ArrayList<String> casillasEntreDosCasillas(String casillaOrigen, String casillaDestino, int tipoAvance){
+        ArrayList<String> casillasIntermedias = new ArrayList<>();
+        boolean finAvance = casillaOrigen.equals(casillaDestino);
+        int filaInicio = this.obtenerCasillaNotacionAlgebraica(casillaOrigen).getFila();
+        int columnaInicio = this.obtenerCasillaNotacionAlgebraica(casillaOrigen).getColumna();
+        int filaFin = this.obtenerCasillaNotacionAlgebraica(casillaDestino).getFila();
+        int columnaFin = this.obtenerCasillaNotacionAlgebraica(casillaDestino).getColumna();
+        int filaIterador = filaInicio;
+        int columnaIterador = columnaInicio;
+        while(!finAvance){
+            switch (tipoAvance) {
+                case 0 -> filaIterador = (filaInicio > filaFin) ? filaIterador - 1 : filaIterador + 1;
+                case 1 -> columnaIterador = (columnaInicio > columnaFin) ? columnaIterador - 1 : columnaIterador + 1;
+                case 2 -> {
+                    filaIterador = (filaInicio > filaFin) ? filaIterador - 1 : filaIterador + 1;
+                    columnaIterador = (columnaInicio > columnaFin) ? columnaIterador - 1 : columnaIterador + 1;
+                }
+            }
+            Casilla casillaIntermedia = this.obtenerCasilla(filaIterador, columnaIterador);
+            if (casillaIntermedia == null || casillaIntermedia.getNotacionAlgebraica().equals(casillaDestino)){
+                finAvance = true;
+            }else{
+                casillasIntermedias.add(casillaIntermedia.getNotacionAlgebraica());
+            }
+        }
+        return casillasIntermedias;
+    }
+
+    public Pieza obtenerRey(boolean blanca){
+        for (Map.Entry<String, Pieza> pieza: piezas.entrySet()){
+            Pieza ficha = pieza.getValue();
+            if (ficha instanceof Rey && ficha.isBlanca() == blanca){
+                return ficha;
+            }
+        }
+        return null;
     }
 
     public Casilla obtenerCasillaNotacionAlgebraica (String string){

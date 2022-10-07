@@ -19,7 +19,7 @@
       <module name="chessApi" options="-parameters" />
       <module name="chessBackend" options="-parameters" />
       <module name="chessFrontend" options="-parameters" />
-      <module name="chessMechanics" options="-parameters" />
+      <module name="chessMechanics" options="" />
     </option>
   </component>
 </project>
