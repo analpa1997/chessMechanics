@@ -22,7 +22,7 @@ public class GameController {
         String movimientoDestino = (String) request.get("movimientoDestino");
         ObjectMapper mapper = new ObjectMapper();
         Partida partida = mapper.convertValue(request.get("partida"), Partida.class);
-
+        partida.getTablero().setCasillas(partida.getTablero().getCasillasNa1());
         partida.realizarMovimiento(movimientoOrigen, movimientoDestino);
         return partida;
     }

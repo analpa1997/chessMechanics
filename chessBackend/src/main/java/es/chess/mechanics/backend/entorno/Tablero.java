@@ -57,6 +57,31 @@ public class Tablero {
         posicionInicial();
     }
 
+    // Obtener las casillas ordenadas de fila mayor a fila menor, y de columna mayor a columna menor.
+    public TreeMap<String, Casilla> getCasillasNa1() {
+        TreeMap<String, Casilla> casillas = new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                int filaCasilla1 = Integer.parseInt(o1.split("_")[0]);
+                int colCasilla1 = Integer.parseInt(o1.split("_")[1]);
+                int filaCasilla2 = Integer.parseInt(o2.split("_")[0]);
+                int colCasilla2 = Integer.parseInt(o2.split("_")[1]);
+                if (filaCasilla1 != filaCasilla2){
+                    return filaCasilla2 - filaCasilla1;
+                }else if (colCasilla2 != colCasilla1){
+                    return colCasilla1 - colCasilla2;
+                }else{
+                    return 0;
+                }
+            }
+        });
+        for (Map.Entry<String, Casilla> casilla : this.getCasillas().entrySet()){
+            casillas.put(casilla.getKey(), casilla.getValue());
+        }
+        return casillas;
+    }
+
+
     public Casilla obtenerCasilla (int fila, int columna){
         return casillas.get(fila + "_" + columna);
     }
@@ -255,22 +280,5 @@ public class Tablero {
         piezas.put(rey.getCasilla(), rey);
         
     }
-
-    /*public void informacionPiezas(){
-        for (int i = 1; i<=numeroFilas; i++){
-            for (int j = 1; j<=numeroColumnas; j++){
-                Casilla casilla = obtenerCasilla(i, j);
-                if (casilla != null){
-                    if (piezasBlancas.containsKey(casilla.toStringNotacionAlgebraica())){
-                        Pieza pieza = piezasBlancas.get(casilla.toStringNotacionAlgebraica());
-                        System.out.println(pieza.informacionMovimientosPieza(this));
-                    }else if (piezasNegras.containsKey(casilla.toStringNotacionAlgebraica())){
-                        Pieza pieza = piezasNegras.get(casilla.toStringNotacionAlgebraica());
-                        System.out.println(pieza.informacionMovimientosPieza(this));
-                    }
-                }
-            }
-        }
-    }*/
 
 }

@@ -1,12 +1,14 @@
 package es.chess.mechanics.backend.entorno;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import es.chess.mechanics.backend.fichas.especificas.Peon;
 import es.chess.mechanics.backend.fichas.especificas.Rey;
 import es.chess.mechanics.backend.fichas.generica.Pieza;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Partida {
 
@@ -14,24 +16,41 @@ public class Partida {
     private boolean turnoBlancas;
     private int resultado;
     private int nMovimientos;
+    private int nTurnos;
     private boolean partidaFinalizada;
     private ArrayList<String> jugadasBlancas;
     private ArrayList<String> jugadasNegras;
+    private PosicionFEN notacionFenActual;
+    private ArrayList<PosicionFEN> todasPosicionesFEN;
+
+    private TreeMap<String, Integer> todasPosicionesFENReducido;
 
     public Partida(){
         this.tablero = new Tablero();
         this.turnoBlancas = true;
         this.partidaFinalizada = false;
         this.nMovimientos = 1;
+        this.nTurnos = 0;
         this.jugadasBlancas = new ArrayList<>();
         this.jugadasNegras = new ArrayList<>();
         this.resultado = 99;
+        this.notacionFenActual = new PosicionFEN();
+        notacionFenActual.generarFEN(this);
+        this.todasPosicionesFEN = new ArrayList<>();
+        this.todasPosicionesFEN.add(notacionFenActual);
+        this.todasPosicionesFENReducido = new TreeMap<>();
+        this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), 1);
     }
 
     public void pasarTurno(){
         this.turnoBlancas = !this.turnoBlancas;
         if (this.turnoBlancas){
             this.nMovimientos ++;
+        }
+        if (partidaFinalizada){
+            for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
+                pieza.getValue().setCasillasDisponibles(new HashSet<>());
+            }
         }
     }
 
@@ -87,6 +106,8 @@ public class Partida {
                     }
                 }
                 ArrayList<String> jugadas = turnoBlancas ? this.jugadasBlancas : this.jugadasNegras ;
+                boolean reiniciarContadorTurnos = (captura) || (piezaAMover instanceof Peon);
+                this.nTurnos = reiniciarContadorTurnos ? 0 : this.nTurnos+1;
                 jugadas.add(this.jugadaNotacionAlgebraica(piezaAMover, casillaOrigen, casillaDestino, captura));
                 comprobarResultado();
                 s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
@@ -154,19 +175,63 @@ public class Partida {
         this.jugadasNegras = jugadasNegras;
     }
 
+    public PosicionFEN getNotacionFenActual() {
+        return notacionFenActual;
+    }
+
+    public void setNotacionFenActual(PosicionFEN notacionFenActual) {
+        this.notacionFenActual = notacionFenActual;
+    }
+
+    public int getnTurnos() {
+        return nTurnos;
+    }
+
+    public void setnTurnos(int nTurnos) {
+        this.nTurnos = nTurnos;
+    }
+
+    public ArrayList<PosicionFEN> getTodasPosicionesFEN() {
+        return todasPosicionesFEN;
+    }
+
+    public void setTodasPosicionesFEN(ArrayList<PosicionFEN> todasPosicionesFEN) {
+        this.todasPosicionesFEN = todasPosicionesFEN;
+    }
+
+    public TreeMap<String, Integer> getTodasPosicionesFENReducido() {
+        return todasPosicionesFENReducido;
+    }
+
+    public void setTodasPosicionesFENReducido(TreeMap<String, Integer> todasPosicionesFENReducido) {
+        this.todasPosicionesFENReducido = todasPosicionesFENReducido;
+    }
+
     public void comprobarResultado(){
+        notacionFenActual.generarFEN(this);
+        notacionFenActual.setTurnoBlancas(!notacionFenActual.isTurnoBlancas());
+        this.todasPosicionesFEN.add(notacionFenActual);
+        System.out.println(notacionFenActual);
+        if (this.todasPosicionesFENReducido.containsKey(notacionFenActual.toStringReducido())){
+            this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), this.todasPosicionesFENReducido.get(notacionFenActual.toStringReducido())+1);
+        }else{
+            System.out.println(this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), 1));
+        }
         boolean conMovimientos = false;
         for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
             if ((pieza.getValue().isBlanca() != turnoBlancas) && pieza.getValue().getCasillasDisponibles().size() > 0){
-                System.out.println(pieza.getValue().informacionMovimientosPieza(tablero));
                 conMovimientos = true;
                 break;
             }
         }
-        // COMPROBAR SI ES MATE O ES AHOGADO
-        // FUTURO, COMPROBAR TRIPLE REPETICIÓN / 50 MOVIMIENTOS
-        if (!conMovimientos){
+        boolean tripleRepeticion = this.todasPosicionesFENReducido.get(this.notacionFenActual.toStringReducido()) > 3;
+        if (tripleRepeticion || this.nTurnos == 100){
+            // TRIPLE REPETICION Y 50 MOVIMIENTOS
+            resultado = 0;
+            partidaFinalizada = true;
+        }else if (!conMovimientos){
             if (tablero.isJaque()){
+                // JAQUE MATE
                 if (turnoBlancas){
                     resultado = 1;
                     String ultimaJugada = jugadasBlancas.get(nMovimientos-1);
@@ -181,6 +246,7 @@ public class Partida {
                     jugadasNegras.add(ultimaJugada);
                 }
             }else{
+                // AHOGADO
                 resultado = 0;
             }
             partidaFinalizada = true;

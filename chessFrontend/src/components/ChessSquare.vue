@@ -37,4 +37,5 @@ export default {
   .conMovimientos:active{
     cursor:grabbing;
   }
+
 </style>

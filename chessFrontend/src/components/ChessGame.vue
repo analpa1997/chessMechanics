@@ -37,12 +37,12 @@
           <h3>NOTACIÓN ALGEBRAICA</h3>
         </div>
         <div class="row">
+          <div class="col-4">Blancas</div>
+          <div class="col-4">#</div>
+          <div class="col-4">Negras</div>
+        </div>
+        <div class="row" id="tablaNotacion">
           <table class="col-12">
-            <thead>
-            <th class="col-4">Blancas</th>
-            <th class="col-4">#</th>
-            <th class="col-4">Negras</th>
-            </thead>
             <tbody>
             <tr v-for="movimiento in this.nMovimientos" v-bind:key="movimiento">
               <td class="col-4">{{ this.jugadasBlancas[movimiento-1] }}</td>
@@ -76,11 +76,15 @@ export default {
       casillasControladasNegras: null,
       piezas: null,
       nMovimientos: null,
+      nTurnos: null,
       partidaFinalizada: null,
       tablero: null,
       jugadasBlancas: null,
       jugadasNegras: null,
-      textoFinPartida: null
+      textoFinPartida: null,
+      notacionFENActual: null,
+      todasPosicionesFEN: null,
+      todasPosicionesFENReducido: null
     }
   },
   components: {
@@ -92,6 +96,7 @@ export default {
   methods: {
     obtenerPartida: function () {
       axios.get('/api/createGame').then((respuesta) => {
+        console.log(respuesta);
         this.tablero = respuesta.data.tablero;
         this.resultado=respuesta.data.resultado;
         this.turnoBlancas=respuesta.data.turnoBlancas;
@@ -107,6 +112,10 @@ export default {
         this.jugadasNegras = respuesta.data.jugadasNegras
         this.piezas=respuesta.data.tablero.piezas;
         this.textoFinPartida = null;
+        this.nTurnos = respuesta.data.nTurnos;
+        this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
+        this.notacionFENActual = respuesta.data.notacionFENActual;
+        this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
       })
     },
     piezaEnCasilla(casilla){
@@ -162,10 +171,14 @@ export default {
             resultado: this.resultado,
             tablero: this.tablero,
             nMovimientos: this.nMovimientos,
+            nTurnos: this.nTurnos,
             partidaFinalizada: this.partidaFinalizada,
             turnoBlancas: this.turnoBlancas,
             jugadasBlancas: this.jugadasBlancas,
-            jugadasNegras: this.jugadasNegras
+            jugadasNegras: this.jugadasNegras,
+            notacionFENActual: this.notacionFENActual,
+            todasPosicionesFEN: this.todasPosicionesFEN,
+            todasPosicionesFENReducido: this.todasPosicionesFENReducido
           },
           movimientoOrigen: casillaOrigen,
           movimientoDestino: casillaDestino,
@@ -185,6 +198,10 @@ export default {
           this.jugadasBlancas = respuesta.data.jugadasBlancas;
           this.jugadasNegras = respuesta.data.jugadasNegras
           this.piezas=respuesta.data.tablero.piezas;
+          this.nTurnos = respuesta.data.nTurnos;
+          this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
+          this.notacionFENActual = respuesta.data.notacionFENActual;
+          this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
           this.mostrarResultado();
         })
       }else{
@@ -212,8 +229,7 @@ export default {
   .movimientoDisponible{
     background: #7ec699!important;
   }
-  .conMovimientos:active{
-    cursor: grabbing;
-
+  #tablaNotacion {
+    overflow-y:scroll;
   }
 </style>
