@@ -16,6 +16,8 @@ public class Tablero {
     private TreeSet<String> casillasControladasBlancas;
     private TreeSet<String> casillasControladasNegras;
 
+    private boolean comerPaso;
+
     //private Casilla[][] tableroArray;
 
     public Tablero(){
@@ -117,6 +119,30 @@ public class Tablero {
             }
         }
         return casillasIntermedias;
+    }
+
+    public Pieza obtenerPrimeraPiezaHastaCasilla(String casillaOrigen, int desplazamientoVertical, int desplazamientoHorizontal){
+        // desplazamientoVertical = -1: Abajo. 1: arriba. 0: Nada. desplazamientoHorizontal = -1: Izq. 1:Der. 0:Nada
+        Pieza pieza = null;
+        boolean finAvance = false;
+        int filaInicio = this.obtenerCasillaNotacionAlgebraica(casillaOrigen).getFila();
+        int columnaInicio = this.obtenerCasillaNotacionAlgebraica(casillaOrigen).getColumna();
+        int filaIterador = desplazamientoVertical;
+        int columnaIterador = desplazamientoHorizontal;
+        while(!finAvance){
+            filaInicio = filaInicio + filaIterador;
+            columnaInicio = columnaInicio + columnaIterador;
+            Casilla casillaIntermedia = this.obtenerCasilla(filaInicio, columnaInicio);
+            if (casillaIntermedia == null){
+                finAvance = true;
+            }else{
+                pieza = this.getPiezaCasilla(casillaIntermedia.getNotacionAlgebraica());
+                if (pieza != null){
+                    finAvance = true;
+                }
+            }
+        }
+        return pieza;
     }
 
     public Pieza obtenerRey(boolean blanca){
@@ -238,6 +264,14 @@ public class Tablero {
 
     public void setPiezasDandoJaque(ArrayList<Pieza> piezasDandoJaque) {
         this.piezasDandoJaque = piezasDandoJaque;
+    }
+
+    public boolean isComerPaso() {
+        return comerPaso;
+    }
+
+    public void setComerPaso(boolean comerPaso) {
+        this.comerPaso = comerPaso;
     }
 
     public Pieza getPiezaCasilla(String casilla){

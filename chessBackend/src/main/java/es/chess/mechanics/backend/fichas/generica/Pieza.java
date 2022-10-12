@@ -6,11 +6,7 @@ import es.chess.mechanics.backend.entorno.Casilla;
 import es.chess.mechanics.backend.entorno.Tablero;
 import es.chess.mechanics.backend.fichas.especificas.*;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoPieza")
 @JsonSubTypes({
@@ -32,11 +28,19 @@ public abstract class Pieza {
     protected String nombreImagen;
     protected String tipoPieza;
 
+    protected boolean isClavadaAbsoluta;
+
+    protected int tipoClavadaAbsoluta;
+
+    protected String casillaPiezaQueClava;
+
     public Pieza(boolean blanca){
         this.blanca = blanca;
         this.casilla = null;
         this.casillasDisponibles = new HashSet<>();
         this.casillasControladas = new HashSet<>();
+        this.tipoClavadaAbsoluta = -1;
+        this.casillaPiezaQueClava = "";
     }
 
     public Pieza(){
@@ -107,6 +111,30 @@ public abstract class Pieza {
         this.tipoPieza = tipoPieza;
     }
 
+    public boolean isClavadaAbsoluta() {
+        return isClavadaAbsoluta;
+    }
+
+    public void setClavadaAbsoluta(boolean clavadaAbsoluta) {
+        isClavadaAbsoluta = clavadaAbsoluta;
+    }
+
+    public int getTipoClavadaAbsoluta() {
+        return tipoClavadaAbsoluta;
+    }
+
+    public void setTipoClavadaAbsoluta(int tipoClavadaAbsoluta) {
+        this.tipoClavadaAbsoluta = tipoClavadaAbsoluta;
+    }
+
+    public String getCasillaPiezaQueClava() {
+        return casillaPiezaQueClava;
+    }
+
+    public void setCasillaPiezaQueClava(String casillaPiezaQueClava) {
+        this.casillaPiezaQueClava = casillaPiezaQueClava;
+    }
+
     public void reiniciarCasillasDisponibles(){
         this.casillasDisponibles = new HashSet<>();
     }
@@ -138,125 +166,123 @@ public abstract class Pieza {
     }
 
     protected HashSet<String> movimientosDisponiblesPeon(Tablero tablero){
+        this.isClavadaAbsoluta(tablero);
         if (this.isBlanca()){
             if (!this.movida){
                 Casilla candidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
                 Casilla laCasillaAnterior = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
                 if (!candidata.isOcupada(tablero) && !laCasillaAnterior.isOcupada(tablero)){
-                    comprobarCasillaMovimiento(tablero, candidata.getFila(), candidata.getColumna(), true, false);
+                    comprobarCasillaMovimiento(tablero, candidata.getFila(), candidata.getColumna());
                 }
             }
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), true, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, true, true);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, true, true);
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
         }else{
             if (!this.movida){
                 Casilla candidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
                 Casilla laCasillaAnterior = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
                 if (!candidata.isOcupada(tablero) && !laCasillaAnterior.isOcupada(tablero)){
-                    comprobarCasillaMovimiento(tablero, candidata.getFila(), candidata.getColumna(), true, false);
+                    comprobarCasillaMovimiento(tablero, candidata.getFila(), candidata.getColumna());
                 }
             }
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), true, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, true, true);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, true, true);
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
         }
             // AÑADIR CAPTURA AL PASO
         return casillasDisponibles;
     }
 
     protected HashSet<String> movimientosDisponiblesCaballo(Tablero tablero){
-        if (tablero.getPiezasDandoJaque().size()<2){
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, false, false);
-            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, false, false);
-        }
+        this.isClavadaAbsoluta(tablero);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
         return this.casillasDisponibles;
     }
 
     protected HashSet<String> movimientosDisponiblesAlfil(Tablero tablero){
-        if (tablero.getPiezasDandoJaque().size()<2){
-            int offsetFila = 1;
-            int offsetCol = 1;
-            boolean ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol, false, false);
+        this.isClavadaAbsoluta(tablero);
+        int offsetFila = 1;
+        int offsetCol = 1;
+        boolean ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol);
 
-                offsetFila++;
-                offsetCol++;
-            }
-            offsetFila = 1;
-            offsetCol = 1;
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol, false, false);
-                offsetFila++;
-                offsetCol++;
-            }
-            offsetFila = 1;
-            offsetCol = 1;
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol, false, false);
-                offsetFila++;
-                offsetCol++;
-            }
-            offsetFila = 1;
-            offsetCol = 1;
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol, false, false);
-                offsetFila++;
-                offsetCol++;
-            }
+            offsetFila++;
+            offsetCol++;
+        }
+        offsetFila = 1;
+        offsetCol = 1;
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
+            offsetFila++;
+            offsetCol++;
+        }
+        offsetFila = 1;
+        offsetCol = 1;
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() - offsetCol);
+            offsetFila++;
+            offsetCol++;
+        }
+        offsetFila = 1;
+        offsetCol = 1;
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
+            offsetFila++;
+            offsetCol++;
         }
         return casillasDisponibles;
     }
 
     protected HashSet<String> movimientosDisponiblesTorre(Tablero tablero){
-        if (tablero.getPiezasDandoJaque().size()<2){
-            int offsetFila = 1;
-            int offsetCol = 1;
-            boolean ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), false, false);
-                offsetFila++;
-            }
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-offsetCol, false, false);
-                offsetCol++;
-            }
-            offsetFila = 1;
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), false, false);
-                offsetFila++;
-            }
-            offsetCol = 1;
-            ocupada = false;
-            while (!ocupada){
-                ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol, false, false);
-                offsetCol++;
-            }
+        this.isClavadaAbsoluta(tablero);
+        int offsetFila = 1;
+        int offsetCol = 1;
+        boolean ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() - offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+            offsetFila++;
+        }
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-offsetCol);
+            offsetCol++;
+        }
+        offsetFila = 1;
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila() + offsetFila,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+            offsetFila++;
+        }
+        offsetCol = 1;
+        ocupada = false;
+        while (!ocupada){
+            ocupada = comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna() + offsetCol);
+            offsetCol++;
         }
         return casillasDisponibles;
     }
 
     protected HashSet<String> movimientosDisponiblesRey(Tablero tablero){
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1, false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna(), false, false);
-        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1, false, false);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
+        comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
         // FALTA QUITAR CASILLAS CONTROLADAS POR EL RIVAL
         HashSet<String> casillasRivalesControladas = new HashSet<>();
         for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
@@ -488,18 +514,40 @@ public abstract class Pieza {
         return casillasControladas;
     }
 
-    private boolean comprobarCasillaMovimiento(Tablero tablero, int fila, int columna, boolean movimientoPeon, boolean capturaPeon) {
+    private boolean comprobarCasillaMovimiento(Tablero tablero, int fila, int columna) {
         Casilla casillaCandidata = tablero.obtenerCasilla(fila, columna);
         Casilla casillaActual = tablero.obtenerCasillaNotacionAlgebraica(this.casilla);
         boolean jaqueDoble = tablero.isJaque() && tablero.getPiezasDandoJaque().size() > 1;
 
         if (casillaCandidata != null) {
             if (this instanceof Rey) { // Si es el rey añadimos la casilla, posteriormente se criban y eliminan las casillas controladas por el rival
-                if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.blanca)){
-                    this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.blanca)) {
+                    // Quitamos que en los jaques el rey se pueda mover por la misma diagonal / fila / columna que la pieza que le da jaque
+                    boolean anadirCasilla = true;
+                    for (Pieza pieza: tablero.getPiezasDandoJaque()){
+                        anadirCasilla = anadirCasilla && !((pieza instanceof Alfil && casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla()))) ||
+                                (pieza instanceof Torre && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))) ||
+                                (pieza instanceof Dama && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))));
+                    }
+                    if (anadirCasilla){
+                        this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                    }
                 }
             } else {
-                // En un jaque doble, únicamente se puede mover el rey, como ya lo hemos controlado arriba no es necesario mirar de nuevo
+                boolean puedeMoverClavada = true;
+                if (this.isClavadaAbsoluta){
+                    Pieza piezaQueClava = tablero.getPiezaCasilla(this.casillaPiezaQueClava);
+                    puedeMoverClavada = ((piezaQueClava instanceof Alfil || piezaQueClava instanceof Dama) &&
+                            casillaActual.enLaMismaDiagonal(casillaCandidata) &&
+                            casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(this.casillaPiezaQueClava)) &&
+                            casillaActual.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(this.casillaPiezaQueClava))) ||
+                            ((piezaQueClava instanceof Dama || piezaQueClava instanceof Torre) &&
+                            (casillaCandidata.enLaMismaFila(casillaActual) &&
+                             casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(this.casillaPiezaQueClava))) ||
+                            (casillaCandidata.enLaMismaColumna(casillaActual) &&
+                             casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(this.casillaPiezaQueClava))));
+                }
+                    // En un jaque doble, únicamente se puede mover el rey, como ya lo hemos controlado arriba no es necesario mirar de nuevo
                 if (tablero.isJaque() && !jaqueDoble) {
                 /* En un jaque de una pieza, se pueden hacer tres cosas:
                     - Mover el rey
@@ -509,7 +557,7 @@ public abstract class Pieza {
                     Casilla casillaReyJaque = tablero.obtenerCasillaNotacionAlgebraica(tablero.obtenerRey(this.blanca).casilla);
                     Pieza piezaQueDaJaque = tablero.getPiezasDandoJaque().get(0); // Únicamente hay una pieza dando jaque
                     Casilla casillaDesdeJaque = tablero.obtenerCasillaNotacionAlgebraica(piezaQueDaJaque.casilla);
-                    if (casillaCandidata.equals(casillaDesdeJaque)) { // Se puede capturar la pieza que da jaque
+                    if (puedeMoverClavada && casillaCandidata.equals(casillaDesdeJaque)) { // Se puede capturar la pieza que da jaque
                         this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
                     } else { // Vemos como controlar que el rival se cubra del jaque, lo cual solo puede pasar con alfil, dama y torre
                         int tipoAvance = 0;
@@ -528,28 +576,30 @@ public abstract class Pieza {
                         }
                         ArrayList<String> casillasIntermediasJaque = tablero.casillasEntreDosCasillas(casillaDesdeJaque.getNotacionAlgebraica(), casillaReyJaque.toStringNotacionAlgebraica(), tipoAvance);
                         if (casillasIntermediasJaque.contains(casillaCandidata.toStringNotacionAlgebraica())) {
-                            if (!(this instanceof Peon) || (casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(this.casilla)))){
+                            if (puedeMoverClavada && (!(this instanceof Peon) || (casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(this.casilla))))) {
                                 this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
                             }
                         }
                     }
                 } else if (!tablero.isJaque()) {
-                    if (this instanceof Peon) {
-                 /* Si el peón se mueve a una columna distinta, está capturando, y solo puede hacerlo si la pieza de esa casilla es rival
-                    Si se mueve a su misma columna, únicamente hay que comprobar si esa casilla no está ocupada.
-                  */
-                        if ((casillaActual.enLaMismaColumna(casillaCandidata))) {
-                            if (!casillaCandidata.isOcupada(tablero)) {
-                                this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                    if(puedeMoverClavada) {
+                        if (this instanceof Peon) {
+             /* Si el peón se mueve a una columna distinta, está capturando, y solo puede hacerlo si la pieza de esa casilla es rival
+                Si se mueve a su misma columna, únicamente hay que comprobar si esa casilla no está ocupada.
+              */
+                            if ((casillaActual.enLaMismaColumna(casillaCandidata))) {
+                                if (!casillaCandidata.isOcupada(tablero)) {
+                                    this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                                }
+                            } else {
+                                if (casillaCandidata.isOcupadaRival(tablero, this.isBlanca())) {
+                                    this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                                }
                             }
                         } else {
-                            if (casillaCandidata.isOcupadaRival(tablero, this.isBlanca())) {
+                            if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.isBlanca())) {
                                 this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
                             }
-                        }
-                    } else {
-                        if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.isBlanca())) {
-                            this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
                         }
                     }
                 }
@@ -567,7 +617,7 @@ public abstract class Pieza {
         }
     }
 
-    private boolean isClavadaAbsoluta(){
+    public boolean isClavadaAbsoluta(Tablero tablero){
         /*
         REVISAR SI LA PIEZA ESTÄ CLAVADA
         Desde la casilla en la que se encuentra la pieza, y la casilla en la que se encuentra el rey del mismo bando, comprobar
@@ -575,6 +625,50 @@ public abstract class Pieza {
         - Si eso pasa, en la otra dirección de dicha fila / columna / diagonal debe haber directamente una pieza enemiga de largo alcance (torre, alfil, dama)
         - Con ambas, debe devolver true
          */
-        return false;
+        if (this instanceof Rey){
+            return false;
+        }else{
+            Casilla casillaPiezaActual = tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla());
+            Casilla casillaReyPieza = tablero.obtenerCasillaNotacionAlgebraica(tablero.obtenerRey(this.isBlanca()).getCasilla());
+            int tipoAvance = 0;
+            int desplazamientoVertical = 0;
+            int desplazamientoHorizontal = 0;
+            // tipoAvance = 0 -> FILA. tipoAvance = 1 -> COLUMNA. tipoAvance = 2 -> DIAGONAL
+            if (casillaPiezaActual.enLaMismaColumna(casillaReyPieza)){
+                tipoAvance = 1;
+                desplazamientoVertical = casillaPiezaActual.getFila() > casillaReyPieza.getFila() ? 1 : -1 ;
+            }else if (casillaPiezaActual.enLaMismaFila(casillaReyPieza)){
+                tipoAvance = 0;
+                desplazamientoHorizontal = casillaPiezaActual.getColumna() > casillaReyPieza.getColumna() ? 1 : -1 ;
+            }else if (casillaPiezaActual.enLaMismaDiagonal(casillaReyPieza)){
+                tipoAvance = 2;
+                desplazamientoVertical = casillaPiezaActual.getFila() > casillaReyPieza.getFila() ? 1 : -1 ;
+                desplazamientoHorizontal = casillaPiezaActual.getColumna() > casillaReyPieza.getColumna() ? 1 : -1 ;
+            }else{
+                return false;
+            }
+            ArrayList<String> casillasIntermedias = tablero.casillasEntreDosCasillas(casillaReyPieza.getNotacionAlgebraica(), casillaPiezaActual.getNotacionAlgebraica(), tipoAvance);
+            System.out.println(casillaReyPieza.getNotacionAlgebraica() + "-" + casillaPiezaActual.getNotacionAlgebraica());
+            for (String square: casillasIntermedias) {
+                System.out.println(square);
+                if (tablero.getPiezaCasilla(square) != null){
+                    return false;
+                }
+            }
+            Pieza piezaQueQuizaClava = tablero.obtenerPrimeraPiezaHastaCasilla(casillaPiezaActual.getNotacionAlgebraica(), desplazamientoVertical, desplazamientoHorizontal);
+            // Si las piezas están en la misma fila o la misma columna, sólo pueden ser clavadas por torre o dama
+            // Si están en la misma diagonal, solo pueden ser clavadas por alfil o dama
+            this.isClavadaAbsoluta = piezaQueQuizaClava != null && piezaQueQuizaClava.isBlanca() != this.isBlanca() &&
+                    (((tipoAvance == 0 || tipoAvance == 1) && (piezaQueQuizaClava instanceof Torre || piezaQueQuizaClava instanceof Dama)) ||
+                            ((tipoAvance == 2) && (piezaQueQuizaClava instanceof Alfil || piezaQueQuizaClava instanceof Dama)));
+            if (this.isClavadaAbsoluta) {
+                this.tipoClavadaAbsoluta = tipoAvance;
+                this.casillaPiezaQueClava = piezaQueQuizaClava.getCasilla();
+            }else{
+                this.tipoClavadaAbsoluta = -1;
+                this.casillaPiezaQueClava = "";
+            }
+            return this.isClavadaAbsoluta;
+        }
     }
 }

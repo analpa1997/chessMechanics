@@ -100,7 +100,7 @@ public class Partida {
                 for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
                     if (pieza.getValue().isBlanca() != turnoBlancas) {
                         pieza.getValue().reiniciarCasillasDisponibles();
-                        if (tablero.getPiezasDandoJaque().size() <= 1 || (tablero.getPiezasDandoJaque().size() > 1 && pieza.getValue() instanceof Rey)) {
+                        if ((tablero.getPiezasDandoJaque().size() <= 1 || (tablero.getPiezasDandoJaque().size() > 1 && pieza.getValue() instanceof Rey))) {
                             pieza.getValue().actualizarCasillasDisponibles(tablero);
                         }
                     }

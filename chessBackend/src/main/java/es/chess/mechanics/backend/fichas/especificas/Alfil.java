@@ -2,10 +2,21 @@ package es.chess.mechanics.backend.fichas.especificas;
 
 import es.chess.mechanics.backend.entorno.Tablero;
 import es.chess.mechanics.backend.fichas.generica.Pieza;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContext;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class Alfil extends Pieza {
+
+    //ResourceBundle rb = ResourceBundle.getBundle("Language", Locale.forLanguageTag("en"));
+
+    //private static ResourceBundle rb = ResourceBundle.getBundle("Language", Locale.forLanguageTag("en"));
+
 
     public Alfil(boolean color) {
         super(color);
@@ -33,8 +44,19 @@ public class Alfil extends Pieza {
     public String toString(){
         if (this.isBlanca()){
             return "A";
+            //return ((String) rb.getObject("alfil")).toUpperCase();
+            //return rb.getString("alfil").toUpperCase();
         }else{
             return "a";
+            //return ((String) rb.getObject("alfil")).toLowerCase();
+            //return rb.getString("alfil").toLowerCase();
+        }
+    }
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "B";
+        }else{
+            return "b";
         }
     }
 
