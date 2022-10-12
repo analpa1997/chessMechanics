@@ -18,6 +18,8 @@ public class Tablero {
 
     private boolean comerPaso;
 
+    private String ultimoMovimientoPeonDosCasillas;
+
     //private Casilla[][] tableroArray;
 
     public Tablero(){
@@ -274,6 +276,14 @@ public class Tablero {
         this.comerPaso = comerPaso;
     }
 
+    public String getUltimoMovimientoPeonDosCasillas() {
+        return ultimoMovimientoPeonDosCasillas;
+    }
+
+    public void setUltimoMovimientoPeonDosCasillas(String ultimoMovimientoPeonDosCasillas) {
+        this.ultimoMovimientoPeonDosCasillas = ultimoMovimientoPeonDosCasillas;
+    }
+
     public Pieza getPiezaCasilla(String casilla){
         return this.getPiezas().get(casilla);
     }
@@ -315,4 +325,20 @@ public class Tablero {
         
     }
 
+    public boolean peonesAdyacentesContrariosComerPaso (boolean turnoBlancas){
+        if (this.isComerPaso()){
+            Casilla casillaPeonPosibleCapturado = this.obtenerCasillaNotacionAlgebraica(this.getUltimoMovimientoPeonDosCasillas());
+            int desplazamiento = turnoBlancas ? -1 : 1;
+            String casillaTraseraPeonPosibleCapturado = this.obtenerCasilla(casillaPeonPosibleCapturado.getFila() + desplazamiento, casillaPeonPosibleCapturado.getColumna()).toStringNotacionAlgebraica();
+            for (String piezaCasilla: piezas.keySet()){
+                Pieza pieza = piezas.get(piezaCasilla);
+                if ((pieza.isBlanca() != turnoBlancas) && (pieza.getCasillasDisponibles().contains(casillaTraseraPeonPosibleCapturado))){
+                    return true;
+                }
+            }
+            return false;
+        }else{
+            return false;
+        }
+    }
 }

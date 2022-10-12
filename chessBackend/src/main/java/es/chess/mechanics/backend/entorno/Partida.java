@@ -54,11 +54,15 @@ public class Partida {
         }
     }
 
-    private void movimiento(Pieza pieza, String destino){
+    private void movimiento(Pieza pieza, String destino, boolean capturaPaso){
         tablero.getPiezas().remove(pieza.getCasilla());
         pieza.movimiento(destino);
         tablero.getPiezas().put(pieza.getCasilla(), pieza);
-
+        if (capturaPaso){
+            int desplazamientoCasillaDetras = pieza.isBlanca() ? -1 : 1;
+            Casilla casillaPeonCapturado = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(destino).getFila()+desplazamientoCasillaDetras, tablero.obtenerCasillaNotacionAlgebraica(destino).getColumna());
+            tablero.getPiezas().remove(casillaPeonCapturado.toStringNotacionAlgebraica());
+        }
     }
 
     private String jugadaNotacionAlgebraica(Pieza pieza, String casillaOrigen, String casillaDestino, boolean captura){
@@ -82,8 +86,22 @@ public class Partida {
         if (!partidaFinalizada){
             piezaAMover = tablero.getPiezas().get(casillaOrigen);
             if (tablero.getPiezas().containsKey(casillaOrigen) && tablero.getPiezas().get(casillaOrigen).isBlanca() == turnoBlancas && piezaAMover.getCasillasDisponibles().contains(casillaDestino)){
-                boolean captura = (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca() != turnoBlancas);
-                this.movimiento(piezaAMover, casillaDestino);
+                int numDetrasDestinoPeon = piezaAMover.isBlanca() ? -1 : 1;
+                Casilla detrasCasillaDestino = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getFila() + numDetrasDestinoPeon, tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getColumna());
+                boolean capturaPaso = tablero.isComerPaso() && piezaAMover instanceof Peon &&
+                        tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).enLaMismaFila(detrasCasillaDestino) &&
+                        (tablero.getPiezas().containsKey(detrasCasillaDestino.toStringNotacionAlgebraica()) && tablero.getPiezas().get(detrasCasillaDestino.toStringNotacionAlgebraica()).isBlanca() != piezaAMover.isBlanca())
+                        ;
+                boolean captura = capturaPaso || (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca() != turnoBlancas);
+                this.movimiento(piezaAMover, casillaDestino, capturaPaso);
+                if ((piezaAMover instanceof Peon &&
+                        (Math.abs(tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).getFila() - tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getFila())) == 2)){
+                    tablero.setUltimoMovimientoPeonDosCasillas(casillaDestino);
+                    tablero.setComerPaso(true);
+                }else{
+                    tablero.setUltimoMovimientoPeonDosCasillas("");
+                    tablero.setComerPaso(false);
+                }
                 tablero.setPiezasDandoJaque(new ArrayList<>());
                 // PRIMERO MIRAMOS CASILLAS CONTROLADAS DEL COLOR, PARA QUITARLAS DE LAS DISPONIBLES DEL REY CONTRARIO
                 tablero.setCasillasControladasBlancas(new TreeSet<>());

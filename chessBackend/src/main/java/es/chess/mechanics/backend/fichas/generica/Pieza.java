@@ -178,6 +178,17 @@ public abstract class Pieza {
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+            // COMER AL PASO
+            if (!"".equals(tablero.getUltimoMovimientoPeonDosCasillas()) && tablero.obtenerCasillaNotacionAlgebraica(this.casilla).getFila() == (tablero.getNumeroFilas() - 3)){
+                Pieza peonPosibleCapturado = tablero.getPiezaCasilla(tablero.getUltimoMovimientoPeonDosCasillas());
+                Casilla casillaPeonRival = tablero.obtenerCasillaNotacionAlgebraica(peonPosibleCapturado.casilla);
+                System.out.println(this.getCasilla() + "-" + peonPosibleCapturado.getCasilla());
+                if (peonPosibleCapturado.isBlanca() != this.isBlanca() &&
+                (Math.abs(casillaPeonRival.getColumna() - tablero.obtenerCasillaNotacionAlgebraica(this.casilla).getColumna()) == 1) &&
+                casillaPeonRival.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(this.casilla))){
+                    comprobarCasillaMovimiento(tablero, casillaPeonRival.getFila()+1,casillaPeonRival.getColumna());
+                }
+            }
         }else{
             if (!this.movida){
                 Casilla candidata = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-2,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
@@ -189,8 +200,18 @@ public abstract class Pieza {
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
             comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()-1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-1);
+            // COMER AL PASO
+            if (!"".equals(tablero.getUltimoMovimientoPeonDosCasillas()) && tablero.obtenerCasillaNotacionAlgebraica(this.casilla).getFila() == (4)){
+                Pieza peonPosibleCapturado = tablero.getPiezaCasilla(tablero.getUltimoMovimientoPeonDosCasillas());
+                Casilla casillaPeonRival = tablero.obtenerCasillaNotacionAlgebraica(peonPosibleCapturado.casilla);
+                System.out.println(this.getCasilla() + "-" + peonPosibleCapturado.getCasilla());
+                if (peonPosibleCapturado.isBlanca() != this.isBlanca() &&
+                (Math.abs(casillaPeonRival.getColumna() - tablero.obtenerCasillaNotacionAlgebraica(this.casilla).getColumna()) == 1) &&
+                casillaPeonRival.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(this.casilla))){
+                    comprobarCasillaMovimiento(tablero, casillaPeonRival.getFila()-1,casillaPeonRival.getColumna());
+                }
+            }
         }
-            // AÑADIR CAPTURA AL PASO
         return casillasDisponibles;
     }
 
@@ -594,6 +615,12 @@ public abstract class Pieza {
                             } else {
                                 if (casillaCandidata.isOcupadaRival(tablero, this.isBlanca())) {
                                     this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                                } else if (tablero.isComerPaso()){
+                                    Casilla casillaPeonComerPaso = tablero.obtenerCasillaNotacionAlgebraica(tablero.getUltimoMovimientoPeonDosCasillas());
+                                    if(casillaPeonComerPaso.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(this.casilla)) &&
+                                    casillaPeonComerPaso.enLaMismaColumna(casillaCandidata)){
+                                        this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                                    }
                                 }
                             }
                         } else {
@@ -648,9 +675,7 @@ public abstract class Pieza {
                 return false;
             }
             ArrayList<String> casillasIntermedias = tablero.casillasEntreDosCasillas(casillaReyPieza.getNotacionAlgebraica(), casillaPiezaActual.getNotacionAlgebraica(), tipoAvance);
-            System.out.println(casillaReyPieza.getNotacionAlgebraica() + "-" + casillaPiezaActual.getNotacionAlgebraica());
             for (String square: casillasIntermedias) {
-                System.out.println(square);
                 if (tablero.getPiezaCasilla(square) != null){
                     return false;
                 }

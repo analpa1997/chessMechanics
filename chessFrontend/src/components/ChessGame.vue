@@ -84,7 +84,9 @@ export default {
       textoFinPartida: null,
       notacionFENActual: null,
       todasPosicionesFEN: null,
-      todasPosicionesFENReducido: null
+      todasPosicionesFENReducido: null,
+      /*comerPaso: null,
+      ultimoMovimientoPeonDosCasillas: null*/
     }
   },
   components: {
@@ -116,6 +118,8 @@ export default {
         this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
         this.notacionFENActual = respuesta.data.notacionFENActual;
         this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
+        /*this.ultimoMovimientoPeonDosCasillas = respuesta.data.ultimoMovimientoPeonDosCasillas;
+        this.comerPaso = respuesta.data.comerPaso*/
       })
     },
     piezaEnCasilla(casilla){
@@ -202,6 +206,8 @@ export default {
           this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
           this.notacionFENActual = respuesta.data.notacionFENActual;
           this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
+          /*this.ultimoMovimientoPeonDosCasillas = respuesta.data.ultimoMovimientoPeonDosCasillas;
+          this.comerPaso = respuesta.data.comerPaso*/
           this.mostrarResultado();
         })
       }else{

@@ -118,9 +118,18 @@ public class PosicionFEN implements Comparable<PosicionFEN>{
                 nCasillasVacias++;
             }
         }
+        // Para añadir el comer al paso
+        if (tablero.isComerPaso()){
+            Casilla casillaPeonCapturado = tablero.obtenerCasillaNotacionAlgebraica(tablero.getUltimoMovimientoPeonDosCasillas());
+            int desplazamiento = partida.isTurnoBlancas() ? -1 : 1;
+            String casillaTraseraPeonPosibleCapturado = tablero.obtenerCasilla(casillaPeonCapturado.getFila() + desplazamiento, casillaPeonCapturado.getColumna()).toStringNotacionAlgebraica();
+            this.comerPaso = tablero.peonesAdyacentesContrariosComerPaso(partida.isTurnoBlancas()) ?  casillaTraseraPeonPosibleCapturado : "-";
+        }else{
+            this.comerPaso = "-";
+        }
+
         this.posicion = posicion;
         this.enroques = "-";
-        this.comerPaso = "-";
         this.turnoBlancas = partida.isTurnoBlancas();
         this.nTurnos = partida.getnTurnos();
         this.nMovimientos = partida.getnMovimientos();
