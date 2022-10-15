@@ -52,6 +52,7 @@ public class Alfil extends Pieza {
             //return rb.getString("alfil").toLowerCase();
         }
     }
+    @Override
     public String toStringIngles(){
         if (this.isBlanca()){
             return "B";

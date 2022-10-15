@@ -1,9 +1,5 @@
 package es.chess.mechanics.backend.entorno;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import es.chess.mechanics.backend.fichas.especificas.Peon;
 import es.chess.mechanics.backend.fichas.especificas.Rey;
 import es.chess.mechanics.backend.fichas.generica.Pieza;
@@ -20,7 +16,10 @@ public class Partida {
     private boolean partidaFinalizada;
     private ArrayList<String> jugadasBlancas;
     private ArrayList<String> jugadasNegras;
-    private PosicionFEN notacionFenActual;
+    private PosicionFEN notacionFENActual;
+
+    private String notacionFENActualString;
+
     private ArrayList<PosicionFEN> todasPosicionesFEN;
 
     private TreeMap<String, Integer> todasPosicionesFENReducido;
@@ -34,12 +33,14 @@ public class Partida {
         this.jugadasBlancas = new ArrayList<>();
         this.jugadasNegras = new ArrayList<>();
         this.resultado = 99;
-        this.notacionFenActual = new PosicionFEN();
-        notacionFenActual.generarFEN(this);
+        this.notacionFENActual = new PosicionFEN();
+        notacionFENActual.generarFEN(this);
+        this.notacionFENActualString = this.notacionFENActual.toString();
         this.todasPosicionesFEN = new ArrayList<>();
-        this.todasPosicionesFEN.add(notacionFenActual);
+        this.todasPosicionesFEN.add(notacionFENActual);
         this.todasPosicionesFENReducido = new TreeMap<>();
-        this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), 1);
+        this.todasPosicionesFENReducido.put(notacionFENActual.toStringReducido(), 1);
+
     }
 
     public void pasarTurno(){
@@ -55,9 +56,27 @@ public class Partida {
     }
 
     private void movimiento(Pieza pieza, String destino, boolean capturaPaso){
+        Casilla casillaDestino = tablero.obtenerCasillaNotacionAlgebraica(destino);
+        Casilla casillaOrigen = tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla());
         tablero.getPiezas().remove(pieza.getCasilla());
         pieza.movimiento(destino);
         tablero.getPiezas().put(pieza.getCasilla(), pieza);
+        if (pieza instanceof Rey && Math.abs(casillaDestino.getColumna() - casillaOrigen.getColumna())==2){
+            // MOVIMIENTO DE ENROQUE, HAY QUE MOVER LA TORRE
+            Pieza torreEnroque = null;
+            Casilla casillaDestinoTorre = null;
+            // Vemos si el enroque es largo o no, para mover la torre donde corresponda.
+            if (casillaDestino.getColumna() > casillaOrigen.getColumna()){
+                torreEnroque = tablero.getPiezaCasilla(tablero.obtenerCasilla(casillaOrigen.getFila(), tablero.getNumeroColumnas()).toStringNotacionAlgebraica());
+                casillaDestinoTorre = tablero.obtenerCasilla(casillaOrigen.getFila(), casillaDestino.getColumna()-1);
+            }else{
+                torreEnroque = tablero.getPiezaCasilla(tablero.obtenerCasilla(casillaOrigen.getFila(), 1).toStringNotacionAlgebraica());
+                casillaDestinoTorre = tablero.obtenerCasilla(casillaOrigen.getFila(), casillaDestino.getColumna()+1);
+            }
+            tablero.getPiezas().remove(torreEnroque.getCasilla());
+            torreEnroque.movimiento(casillaDestinoTorre.toStringNotacionAlgebraica());
+            tablero.getPiezas().put(torreEnroque.getCasilla(), torreEnroque);
+        }
         if (capturaPaso){
             int desplazamientoCasillaDetras = pieza.isBlanca() ? -1 : 1;
             Casilla casillaPeonCapturado = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(destino).getFila()+desplazamientoCasillaDetras, tablero.obtenerCasillaNotacionAlgebraica(destino).getColumna());
@@ -66,16 +85,26 @@ public class Partida {
     }
 
     private String jugadaNotacionAlgebraica(Pieza pieza, String casillaOrigen, String casillaDestino, boolean captura){
-        String jugadaNotacionAlgebraica = pieza.toStringNotacionAlgebraica();
-        if (captura){
-            if (pieza.toStringNotacionAlgebraica().equals("")){
-                jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
+        boolean enroque = pieza instanceof Rey && (Math.abs(tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).getColumna() - tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getColumna())==2);
+        String jugadaNotacionAlgebraica = "";
+        if (enroque){
+            if (tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).getColumna() > tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getColumna()){
+                jugadaNotacionAlgebraica = "O-O-O";
+            }else{
+                jugadaNotacionAlgebraica = "O-O";
             }
-            jugadaNotacionAlgebraica += "x";
-        }
-        jugadaNotacionAlgebraica += casillaDestino;
-        if (tablero.isJaque()){
-            jugadaNotacionAlgebraica += "+";
+        }else{
+            jugadaNotacionAlgebraica = pieza.toStringNotacionAlgebraica();
+            if (captura){
+                if (pieza.toStringNotacionAlgebraica().equals("")){
+                    jugadaNotacionAlgebraica += casillaOrigen.substring(0,1);
+                }
+                jugadaNotacionAlgebraica += "x";
+            }
+            jugadaNotacionAlgebraica += casillaDestino;
+            if (tablero.isJaque()){
+                jugadaNotacionAlgebraica += "+";
+            }
         }
         return jugadaNotacionAlgebraica;
     }
@@ -115,6 +144,7 @@ public class Partida {
                     }
                 }
                 tablero.comprobarJaque();
+                this.comprobarEnroques();
                 for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
                     if (pieza.getValue().isBlanca() != turnoBlancas) {
                         pieza.getValue().reiniciarCasillasDisponibles();
@@ -126,9 +156,10 @@ public class Partida {
                 ArrayList<String> jugadas = turnoBlancas ? this.jugadasBlancas : this.jugadasNegras ;
                 boolean reiniciarContadorTurnos = (captura) || (piezaAMover instanceof Peon);
                 this.nTurnos = reiniciarContadorTurnos ? 0 : this.nTurnos+1;
-                jugadas.add(this.jugadaNotacionAlgebraica(piezaAMover, casillaOrigen, casillaDestino, captura));
+                String jugada = this.jugadaNotacionAlgebraica(piezaAMover, casillaOrigen, casillaDestino, captura);
+                jugadas.add(jugada);
                 comprobarResultado();
-                s = this.nMovimientos + "\t" + piezaAMover.toStringNotacionAlgebraica() + (captura ? "x" : "") + casillaDestino + "\t\t";
+                s = this.nMovimientos + "\t" + jugada + "\t\t";
                 pasarTurno();
             }else{
                 return "Movimiento no válido";
@@ -193,12 +224,12 @@ public class Partida {
         this.jugadasNegras = jugadasNegras;
     }
 
-    public PosicionFEN getNotacionFenActual() {
-        return notacionFenActual;
+    public PosicionFEN getNotacionFENActual() {
+        return notacionFENActual;
     }
 
-    public void setNotacionFenActual(PosicionFEN notacionFenActual) {
-        this.notacionFenActual = notacionFenActual;
+    public void setNotacionFENActual(PosicionFEN notacionFENActual) {
+        this.notacionFENActual = notacionFENActual;
     }
 
     public int getnTurnos() {
@@ -225,15 +256,30 @@ public class Partida {
         this.todasPosicionesFENReducido = todasPosicionesFENReducido;
     }
 
+    public String getNotacionFENActualString() {
+        return notacionFENActualString;
+    }
+
+    public void setNotacionFENActualString(String notacionFENActualString) {
+        this.notacionFENActualString = notacionFENActualString;
+    }
+
     public void comprobarResultado(){
-        notacionFenActual.generarFEN(this);
-        notacionFenActual.setTurnoBlancas(!notacionFenActual.isTurnoBlancas());
-        this.todasPosicionesFEN.add(notacionFenActual);
-        System.out.println(notacionFenActual);
-        if (this.todasPosicionesFENReducido.containsKey(notacionFenActual.toStringReducido())){
-            this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), this.todasPosicionesFENReducido.get(notacionFenActual.toStringReducido())+1);
+        if (!this.turnoBlancas){
+            this.nMovimientos = this.nMovimientos + 1;
+        }
+        notacionFENActual.generarFEN(this);
+        if (!this.turnoBlancas){
+            this.nMovimientos = this.nMovimientos - 1;
+        }
+        this.notacionFENActualString = this.notacionFENActual.toString();
+        notacionFENActual.setTurnoBlancas(!notacionFENActual.isTurnoBlancas());
+        this.todasPosicionesFEN.add(notacionFENActual);
+        System.out.println(notacionFENActual);
+        if (this.todasPosicionesFENReducido.containsKey(notacionFENActual.toStringReducido())){
+            this.todasPosicionesFENReducido.put(notacionFENActual.toStringReducido(), this.todasPosicionesFENReducido.get(notacionFENActual.toStringReducido())+1);
         }else{
-            System.out.println(this.todasPosicionesFENReducido.put(notacionFenActual.toStringReducido(), 1));
+            System.out.println(this.todasPosicionesFENReducido.put(notacionFENActual.toStringReducido(), 1));
         }
         boolean conMovimientos = false;
         for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
@@ -242,7 +288,7 @@ public class Partida {
                 break;
             }
         }
-        boolean tripleRepeticion = this.todasPosicionesFENReducido.get(this.notacionFenActual.toStringReducido()) > 3;
+        boolean tripleRepeticion = this.todasPosicionesFENReducido.get(this.notacionFENActual.toStringReducido()) > 3;
         if (tripleRepeticion || this.nTurnos == 100){
             // TRIPLE REPETICION Y 50 MOVIMIENTOS
             resultado = 0;
@@ -269,5 +315,20 @@ public class Partida {
             }
             partidaFinalizada = true;
         }
+    }
+
+    public void comprobarEnroques (){
+        boolean [] enroquesBlancas = new boolean[2];
+        boolean [] enroquesNegras = new boolean[2];
+        // ENROQUE CORTO BLANCAS
+        enroquesBlancas[0] = tablero.checkEnroque(true, false);
+        // ENROQUE LARGO BLANCAS
+        enroquesBlancas[1] = tablero.checkEnroque(true, true);
+        // ENROQUE CORTO NEGRAS
+        enroquesNegras[0] = tablero.checkEnroque(false, false);
+        // ENROQUE LARGO NEGRAS
+        enroquesNegras[1] = tablero.checkEnroque(false, true);
+        tablero.setEnroquesBlancas(enroquesBlancas);
+        tablero.setEnroquesNegras(enroquesNegras);
     }
 }

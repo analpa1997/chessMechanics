@@ -37,6 +37,14 @@ public class Caballo extends Pieza {
             return "c";
         }
     }
+    @Override
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "N";
+        }else{
+            return "n";
+        }
+    }
 
     public String toStringNotacionAlgebraica(){
         return "C";

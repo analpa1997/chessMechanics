@@ -4,7 +4,9 @@
     <div v-if="this.textoFinPartida" class="row">
       <h1> {{this.textoFinPartida}}</h1>
     </div>
-
+    <div class="row">
+      <h4> {{this.notacionFENActualString}}</h4>
+    </div>
     <div class="row">
       <table id="tablero" class="col-4">
         <tbody>
@@ -85,8 +87,7 @@ export default {
       notacionFENActual: null,
       todasPosicionesFEN: null,
       todasPosicionesFENReducido: null,
-      /*comerPaso: null,
-      ultimoMovimientoPeonDosCasillas: null*/
+      notacionFENActualString: null,
     }
   },
   components: {
@@ -118,8 +119,7 @@ export default {
         this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
         this.notacionFENActual = respuesta.data.notacionFENActual;
         this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
-        /*this.ultimoMovimientoPeonDosCasillas = respuesta.data.ultimoMovimientoPeonDosCasillas;
-        this.comerPaso = respuesta.data.comerPaso*/
+        this.notacionFENActualString = respuesta.data.notacionFENActualString;
       })
     },
     piezaEnCasilla(casilla){
@@ -181,6 +181,7 @@ export default {
             jugadasBlancas: this.jugadasBlancas,
             jugadasNegras: this.jugadasNegras,
             notacionFENActual: this.notacionFENActual,
+            notacionFENActualString: this.notacionFENActualString,
             todasPosicionesFEN: this.todasPosicionesFEN,
             todasPosicionesFENReducido: this.todasPosicionesFENReducido
           },
@@ -206,8 +207,7 @@ export default {
           this.todasPosicionesFEN = respuesta.data.todasPosicionesFEN;
           this.notacionFENActual = respuesta.data.notacionFENActual;
           this.todasPosicionesFENReducido = respuesta.data.todasPosicionesFENReducido;
-          /*this.ultimoMovimientoPeonDosCasillas = respuesta.data.ultimoMovimientoPeonDosCasillas;
-          this.comerPaso = respuesta.data.comerPaso*/
+          this.notacionFENActualString = respuesta.data.notacionFENActualString;
           this.mostrarResultado();
         })
       }else{

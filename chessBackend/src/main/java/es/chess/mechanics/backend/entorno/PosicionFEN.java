@@ -76,12 +76,12 @@ public class PosicionFEN implements Comparable<PosicionFEN>{
     }
 
     public String toString() {
-        String turno = turnoBlancas ? "b" : "n" ;
+        String turno = !turnoBlancas ? "w" : "b" ;
         return posicion + " " + turno + " " + enroques + " " + comerPaso + " " + nTurnos + " " + nMovimientos;
     }
 
     public String toStringReducido() {
-        String turno = turnoBlancas ? "b" : "n" ;
+        String turno = !turnoBlancas ? "w" : "b" ;
         return posicion + " " + turno + " " + enroques + " " + comerPaso;
     }
 
@@ -112,11 +112,14 @@ public class PosicionFEN implements Comparable<PosicionFEN>{
                 if (nCasillasVacias > 0){
                     posicion += nCasillasVacias;
                 }
-                posicion += pieza;
+                posicion += pieza.toStringIngles();
                 nCasillasVacias = 0;
             }else{
                 nCasillasVacias++;
             }
+        }
+        if (nCasillasVacias > 0){
+            posicion += nCasillasVacias;
         }
         // Para añadir el comer al paso
         if (tablero.isComerPaso()){
@@ -127,9 +130,24 @@ public class PosicionFEN implements Comparable<PosicionFEN>{
         }else{
             this.comerPaso = "-";
         }
+        this.enroques = "";
+        if (tablero.getEnroquesBlancas()[0]){
+            this.enroques += "K";
+        }
+        if (tablero.getEnroquesBlancas()[1]){
+            this.enroques += "Q";
+        }
+        if (tablero.getEnroquesNegras()[0]){
+            this.enroques += "k";
+        }
+        if (tablero.getEnroquesNegras()[1]){
+            this.enroques += "q";
+        }
 
         this.posicion = posicion;
-        this.enroques = "-";
+        if (this.enroques.equals("")){
+            this.enroques = "-";
+        }
         this.turnoBlancas = partida.isTurnoBlancas();
         this.nTurnos = partida.getnTurnos();
         this.nMovimientos = partida.getnMovimientos();

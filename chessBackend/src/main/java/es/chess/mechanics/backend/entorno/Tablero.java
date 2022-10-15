@@ -16,6 +16,8 @@ public class Tablero {
     private TreeSet<String> casillasControladasBlancas;
     private TreeSet<String> casillasControladasNegras;
 
+    private boolean[] enroquesBlancas;
+    private boolean[] enroquesNegras;
     private boolean comerPaso;
 
     private String ultimoMovimientoPeonDosCasillas;
@@ -29,6 +31,8 @@ public class Tablero {
         piezasDandoJaque = new ArrayList<>();
         casillasControladasNegras = new TreeSet<>();
         casillasControladasBlancas = new TreeSet<>();
+        this.enroquesBlancas = new boolean[]{true, true};
+        this.enroquesNegras = new boolean[]{true, true};
         casillas = new TreeMap<String, Casilla>(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -284,6 +288,22 @@ public class Tablero {
         this.ultimoMovimientoPeonDosCasillas = ultimoMovimientoPeonDosCasillas;
     }
 
+    public boolean[] getEnroquesBlancas() {
+        return enroquesBlancas;
+    }
+
+    public void setEnroquesBlancas(boolean[] enroquesBlancas) {
+        this.enroquesBlancas = enroquesBlancas;
+    }
+
+    public boolean[] getEnroquesNegras() {
+        return enroquesNegras;
+    }
+
+    public void setEnroquesNegras(boolean[] enroquesNegras) {
+        this.enroquesNegras = enroquesNegras;
+    }
+
     public Pieza getPiezaCasilla(String casilla){
         return this.getPiezas().get(casilla);
     }
@@ -340,5 +360,17 @@ public class Tablero {
         }else{
             return false;
         }
+    }
+
+
+    public boolean checkEnroque(boolean isBlancas, boolean isLargo) {
+        Pieza elRey = this.obtenerRey(isBlancas);
+        if (elRey.isMovida()){
+            return false;
+        }
+        int filaTorre = isBlancas ? 1 : this.numeroFilas;
+        int columnaTorre = isLargo ? 1 : this.numeroColumnas;
+        Pieza piezaEsquina = this.getPiezaCasilla(this.obtenerCasilla(filaTorre, columnaTorre).toStringNotacionAlgebraica());
+        return piezaEsquina instanceof Torre && !piezaEsquina.isMovida();
     }
 }

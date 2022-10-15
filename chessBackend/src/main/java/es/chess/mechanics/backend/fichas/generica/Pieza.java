@@ -135,6 +135,8 @@ public abstract class Pieza {
         this.casillaPiezaQueClava = casillaPiezaQueClava;
     }
 
+    public abstract String toStringIngles();
+
     public void reiniciarCasillasDisponibles(){
         this.casillasDisponibles = new HashSet<>();
     }
@@ -305,6 +307,13 @@ public abstract class Pieza {
         comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna());
         comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila()+1,tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+1);
         // FALTA QUITAR CASILLAS CONTROLADAS POR EL RIVAL
+        boolean[] enroques = this.isBlanca() ? tablero.getEnroquesBlancas() : tablero.getEnroquesNegras();
+        if (enroques[0]){
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()+2);
+        }
+        if (enroques[1]){
+            comprobarCasillaMovimiento(tablero, tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getFila(),tablero.obtenerCasillaNotacionAlgebraica(this.getCasilla()).getColumna()-2);
+        }
         HashSet<String> casillasRivalesControladas = new HashSet<>();
         for (Map.Entry<String, Pieza> pieza : tablero.getPiezas().entrySet()){
             if (this.isBlanca() != pieza.getValue().isBlanca()){
@@ -542,16 +551,41 @@ public abstract class Pieza {
 
         if (casillaCandidata != null) {
             if (this instanceof Rey) { // Si es el rey añadimos la casilla, posteriormente se criban y eliminan las casillas controladas por el rival
-                if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.blanca)) {
-                    // Quitamos que en los jaques el rey se pueda mover por la misma diagonal / fila / columna que la pieza que le da jaque
-                    boolean anadirCasilla = true;
-                    for (Pieza pieza: tablero.getPiezasDandoJaque()){
-                        anadirCasilla = anadirCasilla && !((pieza instanceof Alfil && casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla()))) ||
-                                (pieza instanceof Torre && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))) ||
-                                (pieza instanceof Dama && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))));
+                if (Math.abs(casillaCandidata.getColumna() - casillaActual.getColumna()) == 2){
+                    // COMPROBADOR DE ENROQUE, YA COMPROBADO PREVIAMENTE QUE NI LA TORRE NI EL REY SE HAN MOVIDO
+                    // TOCA COMPROBAR SI EL REY NO ESTÁ EN JAQUE, SI TODAS LAS CASILLAS ENTRE REY Y TORRE ESTÁN LIBRES Y NO ESTÁN CONTROLADAS POR RIVALES
+                    if (!tablero.isJaque()){
+                        int columnaEnroque;
+                        if (columna > casillaActual.getColumna()){
+                            columnaEnroque = tablero.getNumeroColumnas();
+                        }else{
+                            columnaEnroque = 1;
+                        }
+                        ArrayList<String> casillasIntermedias = tablero.casillasEntreDosCasillas(casillaActual.toStringNotacionAlgebraica(), tablero.obtenerCasilla(casillaActual.getFila(), columnaEnroque).toStringNotacionAlgebraica(), 1);
+                        TreeSet<String> casillasControladasRival = this.isBlanca() ? tablero.getCasillasControladasNegras() : tablero.getCasillasControladasBlancas() ;
+                        boolean enroqueDisponible = true;
+                        for (int i = 0; i<casillasIntermedias.size() && enroqueDisponible; i++){
+                            String casillaIntermedia = casillasIntermedias.get(i);
+                            System.out.println(casillaIntermedia);
+                            enroqueDisponible = (tablero.getPiezaCasilla(casillaIntermedia) == null) && (!casillasControladasRival.contains(casillaIntermedia));
+                            System.out.println(enroqueDisponible);
+                        }
+                        if (enroqueDisponible){
+                            this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                        }
                     }
-                    if (anadirCasilla){
-                        this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                }else{
+                    if (!casillaCandidata.isOcupada(tablero) || casillaCandidata.isOcupadaRival(tablero, this.blanca)) {
+                        // Quitamos que en los jaques el rey se pueda mover por la misma diagonal / fila / columna que la pieza que le da jaque
+                        boolean anadirCasilla = true;
+                        for (Pieza pieza: tablero.getPiezasDandoJaque()){
+                            anadirCasilla = anadirCasilla && !((pieza instanceof Alfil && casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla()))) ||
+                                    (pieza instanceof Torre && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))) ||
+                                    (pieza instanceof Dama && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))));
+                        }
+                        if (anadirCasilla){
+                            this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());
+                        }
                     }
                 }
             } else {

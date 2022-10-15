@@ -38,6 +38,15 @@ public class Torre extends Pieza {
         }
     }
 
+    @Override
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "R";
+        }else{
+            return "r";
+        }
+    }
+
     public String toStringNotacionAlgebraica(){
         return "T";
     }

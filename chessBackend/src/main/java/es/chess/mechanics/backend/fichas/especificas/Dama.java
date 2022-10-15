@@ -40,6 +40,15 @@ public class Dama extends Pieza {
         }
     }
 
+    @Override
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "Q";
+        }else{
+            return "q";
+        }
+    }
+
     public String toStringNotacionAlgebraica(){
         return "D";
     }

@@ -38,6 +38,15 @@ public class Peon extends Pieza {
         }
     }
 
+    @Override
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "P";
+        }else{
+            return "p";
+        }
+    }
+
     public String toStringNotacionAlgebraica(){
         return "";
     }

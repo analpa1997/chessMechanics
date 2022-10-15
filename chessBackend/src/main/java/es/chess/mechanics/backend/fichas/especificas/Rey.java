@@ -38,6 +38,15 @@ public class Rey extends Pieza {
         }
     }
 
+    @Override
+    public String toStringIngles(){
+        if (this.isBlanca()){
+            return "K";
+        }else{
+            return "k";
+        }
+    }
+
     public String toStringNotacionAlgebraica(){
         return "R";
     }
