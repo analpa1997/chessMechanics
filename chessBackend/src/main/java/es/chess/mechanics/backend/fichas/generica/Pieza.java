@@ -579,9 +579,10 @@ public abstract class Pieza {
                         // Quitamos que en los jaques el rey se pueda mover por la misma diagonal / fila / columna que la pieza que le da jaque
                         boolean anadirCasilla = true;
                         for (Pieza pieza: tablero.getPiezasDandoJaque()){
-                            anadirCasilla = anadirCasilla && !((pieza instanceof Alfil && casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla()))) ||
-                                    (pieza instanceof Torre && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))) ||
-                                    (pieza instanceof Dama && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))));
+                            anadirCasilla = anadirCasilla &&
+                                    !((pieza instanceof Alfil && casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) && !casillaCandidata.isOcupadaRival(tablero, this.blanca)) ||
+                                    (pieza instanceof Torre && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla()))) && !casillaCandidata.isOcupadaRival(tablero, this.blanca)) ||
+                                    (pieza instanceof Dama && (casillaCandidata.enLaMismaFila(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaColumna(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())) || casillaCandidata.enLaMismaDiagonal(tablero.obtenerCasillaNotacionAlgebraica(pieza.getCasilla())))) && !casillaCandidata.isOcupadaRival(tablero, this.blanca));
                         }
                         if (anadirCasilla){
                             this.casillasDisponibles.add(casillaCandidata.toStringNotacionAlgebraica());

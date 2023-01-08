@@ -119,6 +119,7 @@ public class Partida {
                 Casilla detrasCasillaDestino = tablero.obtenerCasilla(tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getFila() + numDetrasDestinoPeon, tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getColumna());
                 boolean capturaPaso = tablero.isComerPaso() && piezaAMover instanceof Peon &&
                         tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).enLaMismaFila(detrasCasillaDestino) &&
+                        !tablero.getPiezas().containsKey(casillaDestino) &&
                         (tablero.getPiezas().containsKey(detrasCasillaDestino.toStringNotacionAlgebraica()) && tablero.getPiezas().get(detrasCasillaDestino.toStringNotacionAlgebraica()).isBlanca() != piezaAMover.isBlanca())
                         ;
                 boolean captura = capturaPaso || (tablero.getPiezas().containsKey(casillaDestino) && tablero.getPiezas().get(casillaDestino).isBlanca() != turnoBlancas);
@@ -126,6 +127,7 @@ public class Partida {
                 if ((piezaAMover instanceof Peon &&
                         (Math.abs(tablero.obtenerCasillaNotacionAlgebraica(casillaOrigen).getFila() - tablero.obtenerCasillaNotacionAlgebraica(casillaDestino).getFila())) == 2)){
                     tablero.setUltimoMovimientoPeonDosCasillas(casillaDestino);
+
                     tablero.setComerPaso(true);
                 }else{
                     tablero.setUltimoMovimientoPeonDosCasillas("");
